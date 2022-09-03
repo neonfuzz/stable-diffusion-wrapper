@@ -1,0 +1,232 @@
+
+
+[medium] [subject] by [artist(s)], [details], [modifiers]
+
+
+https://weirdwonderfulai.art/resources/disco-diffusion-70-plus-artist-studies/
+https://weirdwonderfulai.art/resources/disco-diffusion-modifiers/
+
+
+Artists
+=======
+
+Landscapes
+----------
+Thomas Cole
+Albert Bierstadt
+
+Fantasy Landscapes
+------------------
+Tyler Edlin
+Mark Simonetti
+James Paick
+Michael Whelan
+
+Fantasy Characters
+------------------
+Justin Gerard (warm, pencils)
+Victor Adame Minguez (painterly, mtg-esque)
+Jesper Ejsing (intricate, mtg-esque)
+Greg Rutkowski (painterly, intricate)
+Tom Bagshaw (portraits, painterly, dark)
+Wayne Barlowe (twisted, black/white and red)
+Gerald Brom (twisted, demonic)
+
+Cyberpunk
+---------
+Josan Gonzalez
+Marek Okon
+
+Sci-Fi
+------
+Jim Burns
+John Harris
+Dean Ellis
+H.R. Giger
+Moebius
+Simon Stalenhag
+Chelsey Bonestell
+
+Anime
+-----
+Studio Ghibli
+Makoto Shinkai
+
+Comic Book
+----------
+Kim Jung Gi
+Junji Ito
+Jean Giraud
+Moebius
+
+Horror
+------
+Wayne Barlowe
+Junji Ito
+Zdzisław Beksiński
+
+Classics
+--------
+DaVinci
+Vincent van Gogh
+Winslow Homer
+M.C. Escher
+Ivan Aivazovsky
+Claude Monet
+Salvador Dalí
+Rembrandt van Rijn
+Georges Seurat
+
+Art Nouveau
+-----------
+Alphonse Mucha
+Gustav Klimt
+Henri de Toulouse-Lautrec
+Aubrey Beardsley
+Mikhail Vrubel
+
+
+Quality
+=======
+4k resolution
+8k resolution
+intricate
+unsplash photo contest winner
+trending on artstation
+trending on flickr
+deviantart
+cgsociety
+
+
+Style Modifiers
+===============
+
+Portraits
+---------
+portrait
+character design
+"wearing an X costume"
+
+Photography
+-----------
+shot on film
+35mm lens
+portrait photography
+cyanotype
+ambrotype
+sabattier effect
+sabattier filter
+multiple exposure
+bokeh
+calotype
+daguerreotype
+fisheye lens
+long exposure
+macro lens
+polaroid
+telephoto lens
+tilt-shift
+tintype
+
+Painting
+--------
+american romanticism
+german romanticism
+dutch golden age
+magic realism
+narrative realism
+oil and canvas
+photorealism
+realism
+still life
+surrealism
+watercolor painting
+acrylic painting
+avant-garde
+impressionism
+naturalism
+rococo
+tonalism
+
+Drawing
+-------
+chalk art
+colored pencil art
+crayon art
+sketched
+graffiti
+street art
+graphic novel
+
+Comic
+-----
+anime
+cel shading
+graphic novel
+avatar, the last airbender
+howl's moving castle
+manga
+toonami
+
+3D Art
+------
+3d art
+lowpoly
+blender
+octane render
+unreal engine
+mandelbulb 3d
+pixar
+coraline
+dreamworks
+
+Colorful
+--------
+60s kitsch and psychedelia
+chillwave
+futuresynth
+glitch art
+outrun
+retrowave
+synthwave
+vaporwave
+cyanotype
+bokeh
+holography
+
+Dark
+----
+dark academia
+gothic art
+lovecraftian
+2001: a space odyssey
+blade runner 2049
+coraline
+game of thrones
+nosferatu
+pan's labyrinth
+
+Abstract
+--------
+60s kitsch and psychedelic
+abstract illusionism
+fractalism
+cubism
+optical illusion
+
+Architecture
+------------
+brutilism
+cottagecore
+
+Pixel
+-----
+#pixelart
+atari
+
+Science Fiction
+---------------
+2001: a space odyssey
+blade runner 2049
+interstellar
+star wars
