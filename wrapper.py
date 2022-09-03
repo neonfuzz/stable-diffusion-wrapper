@@ -198,6 +198,12 @@ class StableWorkshop:
         for key, value in kwargs.items():
             self.settings[key] = value
 
+    def reset(self, **kwargs):
+        self.prompt = StablePrompt(**kwargs)
+        self.settings = StableSettings(**kwargs)
+        self.generated = []
+        self._brainstorm = []
+
     def show_brainstorm(self):
         show_image_grid([bs.image for bs in self._brainstorm])
 
