@@ -1,3 +1,16 @@
+"""Tools to make interactive use of Stable Diffusion (SD) easier.
+
+Classes:
+    StableSettings - contain settings for SD
+    StablePrompt - contain prompt for SD
+    StableImage - contain SD image and its generation information
+    StableWorkshop - use SD in an interactive fashion
+
+Functions:
+    show_image_grid - display images in a grid
+"""
+
+
 # pylint: disable=no-member
 
 from copy import copy
@@ -13,6 +26,7 @@ from img2img import StableDiffusionImg2ImgPipeline
 
 
 def show_image_grid(imgs):
+    """Display multiple images at once, in a grid format."""
     rows = int(sqrt(len(imgs)))
     cols = int(ceil(len(imgs) / rows))
     width, height = imgs[0].size
@@ -24,7 +38,46 @@ def show_image_grid(imgs):
     grid.show()
 
 
+# TODO: eta
+# TODO: sampling method (k_lms, k_ddim, k_euler_a, k_dpl_2_a)
+# https://www.reddit.com/r/StableDiffusion/comments/x41n87/how_to_get_images_that_dont_suck_a/
 class StableSettings:
+    """Container for holding stable diffusion settings.
+
+    Instance Attributes:
+        height (int): image height in pixels, default=512
+        width (int): image width in pixels, default=512
+        seed (int): random seed for generating images, default=1337
+        iters (int): number of diffusion steps for generation, default=50
+        cfg (float): classifier free guidance, default=6.0
+        strength (float): maintain original image, default=1.0
+        dict (dict): represent setting as a dictionary
+
+    Note that `height` and `width` must be multiples of 8. Weird results occur
+    if both `height` and `width` are over 512. It is recommended to keep one
+    value at 512 and vary the other.
+
+    Guidelines for `cfg`:
+        Classifier free guidance controls how closely the AI will match the
+        image output to your text prompt.
+
+        2-5: Allow the AI to hallucinate.
+        6-10: Dynamic balance between human and AI.
+        11-15: Strong inclusion of prompt. Only use for well-crafted prompts.
+        16-20: Force prompt. Not recommended.
+
+    Guidelines for `strength`:
+        Strength controls how closely the AI will match the image output to the
+        image input (as with tuning). A strength of 0.0 maintains the original
+        image. 1.0 completely changes the image (and should be used for
+        brainstorming and hallucinating.)
+
+        0.0-0.5: Stay very close to the original input. Not recommended.
+        0.6-0.7: Keep structure from the input, but change details.
+        0.8-0.9: Change many details and some structure from the input.
+        1.0: Use input as a jumping off point, but allow anything to change.
+    """
+
     def __init__(self, **kwargs):
         self.height = kwargs.pop("height", 512)
         self.width = kwargs.pop("width", 512)
@@ -44,10 +97,35 @@ class StableSettings:
 
     @property
     def dict(self):
+        """Access settings as a dictionary."""
         return self.__dict__
 
 
 class StablePrompt:
+    """Container for holding Stable Diffusion Prompts.
+
+    Instance Attributes:
+        context (str): describe type of image, default="a beautiful painting"
+        subject (str): composition subject, default="a fantasy landscape"
+        artists (list of str): artist names to guide style,
+            default=["Tyler Edlin", "Michael Whelan"]
+        details (list of str): additional details to render in the image,
+            default=["blue sky", "grass", "river"]
+        modifiers (list of str): keywords which will make your image better,
+            default=[
+                "oil on canvas",
+                "intricate",
+                "4k resolution",
+                "trending on artstation"
+            ]
+        dict (dict): represent prompt as a dictionary
+
+    Read-Only Attributes:
+        artist_str (str): represent `artists` as a string
+        details_str (str): represent `artists` as a string
+        modifiers_str (str): represent `artists` as a string
+    """
+
     def __init__(
         self,
         context="a beautiful painting",
@@ -82,10 +160,12 @@ class StablePrompt:
 
     @property
     def dict(self):
+        """Access prompt as a dictionary."""
         return self.__dict__
 
     @property
     def artist_str(self):
+        """Convert list of artists into a prompt string."""
         if self.artists:
             artists = " and ".join(self.artists)
             return f" by {artists}"
@@ -93,16 +173,31 @@ class StablePrompt:
 
     @property
     def details_str(self):
+        """Convert list of details into a prompt string."""
         details = [""] + self.details
         return ", ".join(details)
 
     @property
     def modifiers_str(self):
+        """Convert list of modifiers into a string."""
         modifiers = [""] + self.modifiers
         return ", ".join(modifiers)
 
 
 class StableImage:
+    """Contain a generated image and the information used to generate it.
+
+    Read-Only Instance Attributes:
+        prompt (StablePrompt): the prompt used to generate the image
+        settings (StableSettings): the settings used to generate the image
+        init (StableImage): the seed image, if it exists
+        hash (str): a unique hash for identifying the image
+
+    Methods:
+        show: display the image
+        save: TODO
+    """
+
     def __init__(
         self,
         prompt: StablePrompt,
@@ -113,9 +208,13 @@ class StableImage:
         self._prompt = copy(prompt)
         self._settings = copy(settings) or StableSettings()
         self._image = copy(image)
+        # TODO: index of batch, if batched.
         self._init = init
 
+    # TODO: __repr__ with hash
+
     def show(self):
+        """Show the image."""
         self._image.show()
 
     # TODO
@@ -126,18 +225,40 @@ class StableImage:
     settings = property(fget=lambda self: self._settings)
     image = property(fget=lambda self: self._image)
     init = property(fget=lambda self: self._init)
+    # TODO: images generated with the same init may have the same hash
     hash = property(
         fget=lambda self: f"{hash(self.prompt):x}{hash(self.settings):x}"
     )
 
 
 class StableWorkshop:
+    """An interactive tool for generating Stable Diffusion images.
+
+    Instance Attributes:
+        prompt (StablePrompt): the prompt used for generating
+        settings (StableSettings): the settings used for generating
+        generated (list of StableImage): all images that have been generated
+        brainstormed (list of StableImage): all brainstormed images
+
+        Additionally, all attributes of `prompt` and `settings` are accessible
+        as attributes within the StableWorkshop class.
+
+    Methods:
+        reset - reset workshop to default values
+        show_brainstormed - display brainstormed images
+        show_generated - display generated images
+        brainstorm - generate many low-quality images
+        hallucinate - generate an image from scratch
+        tune - generate an image using a `brainstorm`ed image as a template
+        save - TODO
+    """
+
     def __init__(self, **kwargs):
         self._init_model()
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)
         self.generated = []
-        self._brainstorm = []
+        self.brainstormed = []
         for key in self.prompt.dict:
             fget = lambda self, k=key: self.prompt[k]
             fset = lambda self, value, k=key: setattr(self.prompt, k, value)
@@ -199,31 +320,62 @@ class StableWorkshop:
             self.settings[key] = value
 
     def reset(self, **kwargs):
+        """Reset the Workshop to default values.
+
+        Accepts keyword arguments that can be passed to
+        `StablePrompt` and `StableSettings`.
+
+        Zeroes out `generated` and `brainstormed`
+        """
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)
         self.generated = []
-        self._brainstorm = []
+        self.brainstormed = []
 
-    def show_brainstorm(self):
-        show_image_grid([bs.image for bs in self._brainstorm])
+    def show_brainstormed(self):
+        """Show brainstormed images in a grid."""
+        show_image_grid([bs.image for bs in self.brainstormed])
 
     def show_generated(self):
+        """Show all generated images in a grid."""
         show_image_grid([gn.image for gn in self.generated])
 
-    def brainstorm(self, num=6, show=True, **kwargs):
+    def brainstorm(self, num: int = 6, show: bool = True, **kwargs):
+        """Generate many small images that can be used for `tune`ing.
+
+        Args:
+            num (int): number to generate, default=6
+            show (bool): show a grid after generation, default=True
+
+            Additional kwargs are updated in settings and
+            will persist after calling this method.
+
+        Images are stored in `brainstormed` and will be overwritten
+        if `brainstorm` is called additional times.
+        """
         kwargs["height"] = kwargs.pop("height", 256)
         kwargs["width"] = kwargs.pop("width", 256)
         self._update_settings(**kwargs)
 
         images = self._render(num=num)
-        self._brainstorm = [
+        self.brainstormed = [
             StableImage(prompt=self.prompt, settings=self.settings, image=i)
             for i in images
         ]
         if show is True:
-            self.show_brainstorm()
+            self.show_brainstormed()
 
-    def hallucinate(self, show=True, **kwargs):
+    def hallucinate(self, show: bool = True, **kwargs):
+        """Generate an image from scratch.
+
+        Args:
+            show (bool): show the image after generation, default=True
+
+            Additional kwargs are updated in settings and
+            will persist after calling this method.
+
+        Any generated images will be added to `generated`.
+        """
         self._update_settings(**kwargs)
         image = self._render()[0]
         self.generated.append(
@@ -234,17 +386,30 @@ class StableWorkshop:
         if show is True:
             image.show()
 
-    def tune(self, idx: int, show=True, **kwargs):
-        if not self._brainstorm:
+    def tune(self, idx: int, show: bool = True, **kwargs):
+        """Tune a `brainstorm`ed image into a (hopefully) better image.
+
+        Can only be run after `brainstorm`.
+
+        Args:
+            idx (int): index of `brainstormed`
+            show (bool): show the image after generation, default=True
+
+            Additional kwargs are updated in settings and
+            will persist after calling this method.
+
+        Any generated images will be added to `generated`.
+        """
+        if not self.brainstormed:
             raise RuntimeError("Cannot tune until we've `brainstorm`ed.")
         self._update_settings(**kwargs)
-        image = self._render(init_image=self._brainstorm[idx].image)[0]
+        image = self._render(init_image=self.brainstormed[idx].image)[0]
         self.generated.append(
             StableImage(
                 prompt=str(self.prompt),
                 settings=self.settings,
                 image=image,
-                init=self._brainstorm[idx],
+                init=self.brainstormed[idx],
             )
         )
         if show is True:
