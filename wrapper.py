@@ -50,35 +50,23 @@ class StableSettings:
 class StablePrompt:
     def __init__(
         self,
-        subject="a fantasy landscape",
         context="a beautiful painting",
-        artists=None,
-        details=None,
-        modifiers=None,
+        subject="a fantasy landscape",
         **kwargs,
     ):
-        self.subject = subject
         self.context = context
-
-        if isinstance(artists, str):
-            self.artists = [artists]
-        else:
-            self.artists = artists or ["Tyler Edlin", "Michael Whelan"]
-
-        if isinstance(details, str):
-            self.details = [details]
-        else:
-            self.details = details or ["blue sky", "grass", "river"]
-
-        if isinstance(modifiers, str):
-            self.modifiers = [modifiers]
-        else:
-            self.modifiers = modifiers or [
+        self.subject = subject
+        self.artists = kwargs.pop("artists", ["Tyler Edlin", "Michael Whelan"])
+        self.details = kwargs.pop("details", ["blue sky", "grass", "river"])
+        self.modifiers = kwargs.pop(
+            "modifiers",
+            [
                 "oil on canvas",
                 "intricate",
                 "4k resolution",
                 "trending on artstation",
-            ]
+            ],
+        )
 
     def __repr__(self):
         return (
