@@ -30,7 +30,7 @@ class StableSettings:
         self.width = kwargs.pop("width", 512)
         self.seed = kwargs.pop("seed", 1337)
         self.iters = kwargs.pop("iters", 50)
-        self.scale = kwargs.pop("scale", 6.0)
+        self.cfg = kwargs.pop("cfg", 6.0)
         self.strength = kwargs.pop("strength", 1.0)
 
     def __repr__(self):
@@ -201,7 +201,7 @@ class StableWorkshop:
                 prompt,
                 init_image=init_tensor,
                 strength=self.settings.strength,
-                guidance_scale=self.settings.scale,
+                guidance_scale=self.settings.cfg,
                 num_inference_steps=self.settings.iters,
             )
         return result
