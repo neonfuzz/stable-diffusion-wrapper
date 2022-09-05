@@ -105,7 +105,7 @@ class StablePrompt:
     """Container for holding Stable Diffusion Prompts.
 
     Instance Attributes:
-        context (str): describe type of image, default="a beautiful painting"
+        medium (str): describe type of image, default="oil painting on canvas"
         subject (str): composition subject, default="a fantasy landscape"
         artists (list of str): artist names to guide style,
             default=["Tyler Edlin", "Michael Whelan"]
@@ -128,18 +128,17 @@ class StablePrompt:
 
     def __init__(
         self,
-        context="a beautiful painting",
+        medium="oil painting on canvas",
         subject="a fantasy landscape",
         **kwargs,
     ):
-        self.context = context
+        self.medium = medium
         self.subject = subject
         self.artists = kwargs.pop("artists", ["Tyler Edlin", "Michael Whelan"])
         self.details = kwargs.pop("details", ["blue sky", "grass", "river"])
         self.modifiers = kwargs.pop(
             "modifiers",
             [
-                "oil on canvas",
                 "intricate",
                 "4k resolution",
                 "trending on artstation",
@@ -148,7 +147,7 @@ class StablePrompt:
 
     def __repr__(self):
         return (
-            f"{self.context} of {self.subject}{self.artist_str}"
+            f"{self.medium} of {self.subject}{self.artist_str}"
             f"{self.details_str}{self.modifiers_str}"
         )
 
