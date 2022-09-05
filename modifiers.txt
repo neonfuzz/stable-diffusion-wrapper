@@ -4,23 +4,30 @@
 
 
 https://weirdwonderfulai.art/resources/disco-diffusion-70-plus-artist-studies/
+https://weirdwonderfulai.art/resources/stable-diffusion-micro-artist-studies/
+
 https://weirdwonderfulai.art/resources/disco-diffusion-modifiers/
+https://weirdwonderfulai.art/resources/midjourney-style-chart-by-robomar-ai-art/
+
+https://lexica.art/
 
 
 Artists
 =======
 
-Landscapes
-----------
+Classical Landscapes
+--------------------
 Thomas Cole
+Thomas Kinkaid
 Albert Bierstadt
+Ansel Adams
 
 Fantasy Landscapes
 ------------------
-Tyler Edlin
-Mark Simonetti
-James Paick
-Michael Whelan
+Tyler Edlin (colorful, digital, painterly, soft)
+Michael Whelan (colorful, bold, cover art)
+Mark Simonetti (intricate, broody)
+James Paick (intricate, post-apocalyptic)
 
 Fantasy Characters
 ------------------
@@ -34,18 +41,18 @@ Gerald Brom (twisted, demonic)
 
 Cyberpunk
 ---------
-Josan Gonzalez
-Marek Okon
+Josan Gonzalez (intricate, colorful, cel shading)
+Marek Okon (painterly, dark, realistic)
 
 Sci-Fi
 ------
-Jim Burns
-John Harris
-Dean Ellis
-H.R. Giger
-Moebius
-Simon Stalenhag
-Chelsey Bonestell
+Chelsey Bonestell (60s alien landscape, intricate)
+Jim Burns (60s book covers)
+Moebius aka Jean Giraud (60s graphic novel)
+Dean Ellis (60s poster)
+Simon Stalenhag (painterly, intricate)
+John Harris (painterly, soft)
+H.R. Giger (black and white, creepy)
 
 Anime
 -----
@@ -54,44 +61,42 @@ Makoto Shinkai
 
 Comic Book
 ----------
-Kim Jung Gi
-Junji Ito
-Jean Giraud
-Moebius
+Kim Jung Gi (black and white, intricate)
+Junji Ito (b/w inks, uncanny valley)
+Moebius aka Jean Giraud (60s graphic novel)
 
 Horror
 ------
-Wayne Barlowe
-Junji Ito
-Zdzisław Beksiński
+Wayne Barlowe (pencils, twisted)
+Junji Ito (b/w inks, uncanny valley)
+Zdzisław Beksiński (painterly, surreal)
 
 Classics
 --------
-DaVinci
-Vincent van Gogh
-Winslow Homer
-M.C. Escher
-Ivan Aivazovsky
-Claude Monet
-Salvador Dalí
-Rembrandt van Rijn
-Georges Seurat
-
-Art Nouveau
------------
-Alphonse Mucha
-Gustav Klimt
-Henri de Toulouse-Lautrec
-Aubrey Beardsley
-Mikhail Vrubel
+DaVinci (High Renaissance, 1400s)
+Rembrandt van Rijn (Dutch Golden Age, 1600s)
+Winslow Homer (American Realism, landscapes esp. marine, 1800s)
+Ivan Aivazovsky (Romanticism, marine paintings, 1800s)
+Georges Seurat (Post-Impressionism, pointillism, 1800s)
+Vincent van Gogh (Post-Impressionism, 1800s)
+Henri de Toulouse-Lautrec (Post-Impressionism, Art Nouveau, 1800s)
+Aubrey Beardsley (Art Nouveau, Aestheticism, black and white, 1800s)
+Alphonse Mucha (Art Nouveau, theatrical posters, 1800s)
+Gustav Klimt (Art Nouveau, Symbolist, gold leaf, 1900s)
+Claude Monet (Impressionism, 1900s)
+Salvador Dalí (Surrealism, 1900s)
+M.C. Escher (Modern, lithography, mathematical, 1900s)
+Andy Warhol (Modern, Pop Art, 1900s)
+Banksy (Modern, street art, 2000s)
 
 
-Quality
-=======
+Quality Modifiers
+=================
 4k resolution
 8k resolution
 intricate
 unsplash photo contest winner
+award-winning advertisement
 trending on artstation
 trending on flickr
 deviantart
@@ -104,69 +109,106 @@ Style Modifiers
 Portraits
 ---------
 portrait
+portrait photography
+professional photo
 character design
 "wearing an X costume"
+full body
+cinematic
+dramatic lighting
+golden hour
+highly-detailed symmetric face
+unique nose
+fantastic eyes
+intricate eyes
 
 Photography
 -----------
-shot on film
+dramatic studio lighting
+f/8
+sharp focus
+depth of field
 35mm lens
-portrait photography
+fisheye lens
+macro lens
+telephoto lens
+wide angle lens
 cyanotype
 ambrotype
+calotype
+daguerreotype
+tintype
+shot on film
+polaroid
 sabattier effect
 sabattier filter
 multiple exposure
-bokeh
-calotype
-daguerreotype
-fisheye lens
 long exposure
-macro lens
-polaroid
-telephoto lens
+bokeh
 tilt-shift
-tintype
 
 Painting
 --------
-american romanticism
-german romanticism
-dutch golden age
-magic realism
-narrative realism
-oil and canvas
-photorealism
-realism
-still life
-surrealism
+oil on canvas
+oil on board
 watercolor painting
 acrylic painting
+airbrush
+digital art
+american romanticism
 avant-garde
+dutch golden age
+german romanticism
 impressionism
+magic realism
+narrative realism
 naturalism
+photorealism
+realism
+renaissance
 rococo
+still life
+surrealism
 tonalism
 
 Drawing
 -------
+sketched
+sketch
+line drawing
+line art
+blackboard
+caligraphy
+drypoint
+graphic novel
+stencil
 chalk art
 colored pencil art
 crayon art
-sketched
+graphite
+pastel
+pen
+
+Street Art
+----------
 graffiti
 street art
-graphic novel
+spray paint
 
 Comic
 -----
 anime
+caricature
 cel shading
+chibi
 graphic novel
+halftone
+manga
+noir line art
+toonami
 avatar, the last airbender
 howl's moving castle
-manga
-toonami
+marvel comics
 
 3D Art
 ------
@@ -176,13 +218,26 @@ blender
 octane render
 unreal engine
 mandelbulb 3d
+zbrush
+funko pop
 pixar
-coraline
 dreamworks
+coraline
+
+Sculpture
+---------
+sculpture
+bone carving
+marble
+ice carving
+plasticine
+porcelain
+classical greek
 
 Colorful
 --------
 60s kitsch and psychedelia
+psychedelic
 chillwave
 futuresynth
 glitch art
@@ -193,17 +248,25 @@ vaporwave
 cyanotype
 bokeh
 holography
+stained glass
+tarot card
+labor poster
+neon
+kaliedoscope
+pastel
+pop art
 
 Dark
 ----
 dark academia
 gothic art
 lovecraftian
+nosferatu
+monochrome
 2001: a space odyssey
 blade runner 2049
 coraline
 game of thrones
-nosferatu
 pan's labyrinth
 
 Abstract
@@ -213,19 +276,40 @@ abstract illusionism
 fractalism
 cubism
 optical illusion
+bauhaus
+origami
+pictogram
+minimalist
+splatter
+pop art
 
 Architecture
 ------------
+neo-futurism
+modern
+mid-century modern
+contemporary
 brutilism
 cottagecore
+greek revival
+spanish colonial revival
+tudor revival
+victorian
+queen anne
+gothic
+baroque
 
 Pixel
 -----
 #pixelart
 atari
+8-bit
 
 Science Fiction
 ---------------
+cyberpunk
+steampunk
+clockpunk
 2001: a space odyssey
 blade runner 2049
 interstellar
