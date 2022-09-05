@@ -38,6 +38,7 @@ def show_image_grid(imgs):
     grid.show()
 
 
+# TODO: why are images sometimes more washed out at lower strengths?
 # TODO: eta
 # TODO: sampling method (k_lms, k_ddim, k_euler_a, k_dpl_2_a)
 # https://www.reddit.com/r/StableDiffusion/comments/x41n87/how_to_get_images_that_dont_suck_a/
