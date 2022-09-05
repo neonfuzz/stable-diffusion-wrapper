@@ -211,7 +211,8 @@ class StableImage:
         # TODO: index of batch, if batched.
         self._init = init
 
-    # TODO: __repr__ with hash
+    def __repr__(self):
+        return f"StableImage: {self.hash}"
 
     def show(self):
         """Show the image."""
@@ -225,9 +226,8 @@ class StableImage:
     settings = property(fget=lambda self: self._settings)
     image = property(fget=lambda self: self._image)
     init = property(fget=lambda self: self._init)
-    # TODO: images generated with the same init may have the same hash
     hash = property(
-        fget=lambda self: f"{hash(self.prompt):x}{hash(self.settings):x}"
+        fget=lambda self: f"{hash(self.image.tobytes()):x}".strip("-")
     )
 
 
