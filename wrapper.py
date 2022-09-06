@@ -13,8 +13,10 @@ Functions:
 
 # pylint: disable=no-member
 
+import os
 from copy import copy
 from math import sqrt, ceil
+import yaml
 
 from diffusers.training_utils import set_seed
 from PIL import Image
@@ -197,7 +199,7 @@ class StableImage:
 
     Methods:
         show: display the image
-        save: TODO
+        save: save the image and settings to file
     """
 
     def __init__(
@@ -220,9 +222,34 @@ class StableImage:
         """Show the image."""
         self._image.show()
 
-    # TODO
     def save(self):
-        raise NotImplementedError
+        """Save the image and its associated settings.
+
+        Image saves to generated/`hash`.png.
+        Settings and prompt append to generated/logs.yaml.
+        If `init` is not none, `init` saves as well.
+        """
+        try:
+            os.mkdir("generated")
+        except FileExistsError:
+            pass
+
+        self.image.save(f"generated/{self.hash}.png")
+        with open("generated/logs.yaml", "a", encoding="utf-8") as logfile:
+            logfile.write(
+                yaml.dump(
+                    {
+                        self.hash: {
+                            "prompt": str(self.prompt),
+                            "settings": self.settings,
+                            "init": str(self.init),
+                        }
+                    }
+                )
+            )
+
+        if self.init:
+            self.init.save()
 
     prompt = property(fget=lambda self: self._prompt)
     settings = property(fget=lambda self: self._settings)
@@ -252,7 +279,7 @@ class StableWorkshop:
         brainstorm - generate many low-quality images
         hallucinate - generate an image from scratch
         tune - generate an image using a `brainstorm`ed image as a template
-        save - TODO
+        save - save all `generated` images
     """
 
     def __init__(self, **kwargs):
@@ -417,6 +444,7 @@ class StableWorkshop:
         if show is True:
             image.show()
 
-    # TODO
     def save(self):
-        raise NotImplementedError
+        """Save all `generated` images. See `StableImage.save`."""
+        for image in self.generated:
+            image.save()
