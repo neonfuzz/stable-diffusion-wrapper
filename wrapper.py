@@ -381,14 +381,14 @@ class StableWorkshop:
             num (int): number to generate, default=12
             show (bool): show a grid after generation, default=True
 
-            Additional kwargs are updated in settings and
-            will persist after calling this method.
+            Additional kwargs are used at render time for this call only.
 
         Images are stored in `brainstormed` and will be overwritten
         if `brainstorm` is called additional times.
         """
         kwargs["height"] = kwargs.pop("height", 256)
         kwargs["width"] = kwargs.pop("width", 256)
+        settings = copy(self.settings)
         self._update_settings(**kwargs)
 
         images = self._render(num=num)
@@ -396,6 +396,8 @@ class StableWorkshop:
             StableImage(prompt=self.prompt, settings=self.settings, image=i)
             for i in images
         ]
+
+        self.settings = settings
         if show is True:
             self.show_brainstormed()
 
