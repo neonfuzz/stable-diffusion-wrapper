@@ -10,6 +10,12 @@ Functions:
     show_image_grid - display images in a grid
 """
 
+# TODO: trim brainstormed
+# TODO: grid_search
+# TODO: draft (with faster noise scheduler)
+# TODO: garbage collection on the gpu
+# TODO: average images in latent space
+# TODO: "working" image, which can be set or loaded from file
 
 # pylint: disable=no-member
 
@@ -42,8 +48,6 @@ def show_image_grid(imgs):
     grid.show()
 
 
-# TODO: why are images sometimes more washed out at lower strengths?
-# TODO: eta
 # TODO: sampling method (k_lms, k_ddim, k_euler_a, k_dpl_2_a)
 # https://www.reddit.com/r/StableDiffusion/comments/x41n87/how_to_get_images_that_dont_suck_a/
 class StableSettings:
@@ -106,6 +110,7 @@ class StableSettings:
         return self.__dict__
 
 
+# TODO: init settings for different modes
 class StablePrompt:
     """Container for holding Stable Diffusion Prompts.
 
@@ -212,7 +217,6 @@ class StableImage:
         self._prompt = copy(prompt)
         self._settings = copy(settings) or StableSettings()
         self._image = copy(image)
-        # TODO: index of batch, if batched.
         self._init = init
 
     def __repr__(self):
@@ -395,6 +399,7 @@ class StableWorkshop:
         if show is True:
             self.show_brainstormed()
 
+    # TODO: temporarily set strength
     def hallucinate(self, show: bool = True, **kwargs):
         """Generate an image from scratch.
 
