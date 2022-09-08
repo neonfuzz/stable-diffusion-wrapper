@@ -17,10 +17,10 @@ Artists
 
 Classical Landscapes
 --------------------
-Thomas Cole
-Thomas Kinkaid
-Albert Bierstadt
-Ansel Adams
+Ansel Adams (black and white landscape photography)
+Thomas Cole (romanticism, intricate)
+Albert Bierstadt (romanticism, intricate)
+Thomas Kinkade (cottages, homey, colorful)
 
 Fantasy Landscapes
 ------------------
@@ -31,11 +31,14 @@ James Paick (intricate, post-apocalyptic)
 
 Fantasy Characters
 ------------------
-Justin Gerard (warm, pencils)
+Justin Gerard (warm, colorful, intricate)
+Tomasz Alen Kopera (intricate, earthy, cinematic)
 Victor Adame Minguez (painterly, mtg-esque)
 Jesper Ejsing (intricate, mtg-esque)
 Greg Rutkowski (painterly, intricate)
 Tom Bagshaw (portraits, painterly, dark)
+Annie Leibovitz (intricate portrait photography)
+Marco Mazzoni (colored pencil, intricate, weird)
 Wayne Barlowe (twisted, black/white and red)
 Gerald Brom (twisted, demonic)
 
@@ -53,6 +56,7 @@ Dean Ellis (60s poster)
 Simon Stalenhag (painterly, intricate)
 John Harris (painterly, soft)
 H.R. Giger (black and white, creepy)
+Ridley Scott (cinematic)
 
 Anime
 -----
@@ -70,6 +74,15 @@ Horror
 Wayne Barlowe (pencils, twisted)
 Junji Ito (b/w inks, uncanny valley)
 Zdzisław Beksiński (painterly, surreal)
+
+Photography
+-----------
+Peter Lindbergh (black and white portraits, elaborate backgrounds)
+Yousuf Karsh (black and white portraits, close up)
+Annie Leibovitz (intricate portrait photography)
+Ansel Adams (black and white landscape photography)
+Mat Collishaw (still life, flowers)
+Marsel van Oosten (wildlife photography)
 
 Classics
 --------
@@ -112,6 +125,7 @@ portrait
 portrait photography
 professional photo
 character design
+graphic novel character
 "wearing an X costume"
 full body
 cinematic
@@ -125,9 +139,9 @@ intricate eyes
 Photography
 -----------
 dramatic studio lighting
-f/8
 sharp focus
 depth of field
+f/8
 35mm lens
 fisheye lens
 macro lens
@@ -155,9 +169,12 @@ watercolor painting
 acrylic painting
 airbrush
 digital art
-american romanticism
-avant-garde
+authentic
+masterpiece
+brush strokes
+still life
 dutch golden age
+american romanticism
 german romanticism
 impressionism
 magic realism
@@ -167,9 +184,9 @@ photorealism
 realism
 renaissance
 rococo
-still life
-surrealism
 tonalism
+surrealism
+avant-garde
 
 Drawing
 -------
@@ -214,6 +231,7 @@ marvel comics
 ------
 3d art
 lowpoly
+volumetric lighting
 blender
 octane render
 unreal engine
@@ -239,12 +257,11 @@ Colorful
 60s kitsch and psychedelia
 psychedelic
 chillwave
-futuresynth
-glitch art
-outrun
 retrowave
 synthwave
 vaporwave
+futuresynth
+glitch art
 cyanotype
 bokeh
 holography
