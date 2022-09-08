@@ -279,6 +279,7 @@ class StableWorkshop:
         brainstorm - generate many low-quality images
         hallucinate - generate an image from scratch
         tune - generate an image using a `brainstorm`ed image as a template
+        refine - generate an image using a `generated` image as a template
         save - save all `generated` images
     """
 
@@ -439,6 +440,33 @@ class StableWorkshop:
                 settings=self.settings,
                 image=image,
                 init=self.brainstormed[idx],
+            )
+        )
+        if show is True:
+            image.show()
+
+    def refine(self, idx: int, show: bool = True, **kwargs):
+        """Refine a `generated` image.
+
+        Can only be run after at least one of `hallucinate` or `tune`.
+
+        Args:
+            idx (int): index of `generated`
+            show (bool): show the image after generation, default=True
+
+            Additional kwars are updated in settings and
+            will persist after calling this method.
+
+        Any generated images will be added to `generated`.
+        """
+        self._update_settings(**kwargs)
+        image = self._render(init_image=self.generated[idx].image)[0]
+        self.generated.append(
+            StableImage(
+                prompt=str(self.prompt),
+                settings=self.settings,
+                image=image,
+                init=self.generated[idx],
             )
         )
         if show is True:
