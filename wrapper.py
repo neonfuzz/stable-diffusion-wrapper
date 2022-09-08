@@ -374,11 +374,11 @@ class StableWorkshop:
         """Show all generated images in a grid."""
         show_image_grid([gn.image for gn in self.generated])
 
-    def brainstorm(self, num: int = 6, show: bool = True, **kwargs):
+    def brainstorm(self, num: int = 12, show: bool = True, **kwargs):
         """Generate many small images that can be used for `tune`ing.
 
         Args:
-            num (int): number to generate, default=6
+            num (int): number to generate, default=12
             show (bool): show a grid after generation, default=True
 
             Additional kwargs are updated in settings and
