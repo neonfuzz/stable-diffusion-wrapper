@@ -33,12 +33,12 @@ from torchvision import transforms
 from img2img import StableDiffusionImg2ImgPipeline
 
 
-def show_image_grid(imgs):
+def show_image_grid(imgs, rows=None, cols=None):
     """Display multiple images at once, in a grid format."""
     if isinstance(imgs[0], StableImage):
         imgs = [i.image for i in imgs]
-    rows = int(sqrt(len(imgs)))
-    cols = int(ceil(len(imgs) / rows))
+    rows = rows or int(sqrt(len(imgs)))
+    cols = cols or int(ceil(len(imgs) / rows))
     width, height = imgs[0].size
     grid = Image.new("RGB", size=(cols * width, rows * height))
 
