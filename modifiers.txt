@@ -8,6 +8,7 @@ https://weirdwonderfulai.art/resources/stable-diffusion-micro-artist-studies/
 
 https://weirdwonderfulai.art/resources/disco-diffusion-modifiers/
 https://weirdwonderfulai.art/resources/midjourney-style-chart-by-robomar-ai-art/
+https://moritz.pm/posts/parameters
 
 https://lexica.art/
 
@@ -77,6 +78,7 @@ Zdzisław Beksiński (painterly, surreal)
 
 Photography
 -----------
+(NOTE: combining photographers doesn't work very well)
 Peter Lindbergh (black and white portraits, elaborate backgrounds)
 Yousuf Karsh (black and white portraits, close up)
 Annie Leibovitz (intricate portrait photography)
@@ -106,18 +108,49 @@ Banksy (Modern, street art, 2000s)
 Quality Modifiers
 =================
 4k resolution
+4k uhd
 8k resolution
+8k uhd
 intricate
+filigree
+ornate
+embellishments
+perfectionism
+masterpiece
 unsplash photo contest winner
 award-winning advertisement
 trending on artstation
 trending on flickr
+trending on pixiv (anime/manga)
 deviantart
 cgsociety
 
 
 Style Modifiers
 ===============
+
+Lighting
+--------
+god rays
+radiant light rays
+hard shadows
+studio lighting
+soft lighting
+diffused lighting
+rim lighting
+volumetric lighting
+specular lighting
+cinematic lighting
+luminescence
+translucency
+subsurface scattering
+global illumination
+indirect light
+bioluminescent details
+glowing
+shimmering light
+halo
+iridescent
 
 Portraits
 ---------
@@ -232,6 +265,7 @@ marvel comics
 3d art
 lowpoly
 volumetric lighting
+raytracing
 blender
 octane render
 unreal engine
