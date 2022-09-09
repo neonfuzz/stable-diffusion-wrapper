@@ -24,13 +24,13 @@ from copy import copy
 from math import sqrt, ceil
 import yaml
 
+# pylint: disable=no-name-in-module
+from diffusers import StableDiffusionImg2ImgPipeline
 from diffusers.training_utils import set_seed
 from PIL import Image
 import torch
 from torch import autocast
 from torchvision import transforms
-
-from img2img import StableDiffusionImg2ImgPipeline
 
 
 def show_image_grid(imgs, rows=None, cols=None):
@@ -312,7 +312,7 @@ class StableWorkshop:
         )
         self._pipe = self._pipe.to("cuda")
 
-    def _init_tensor(self):
+    def _init_image(self):
         latents = torch.randn(
             (
                 1,
@@ -327,27 +327,23 @@ class StableWorkshop:
         with autocast("cuda"):
             with torch.no_grad():
                 init_tensor = self._pipe.vae.decode(latents)
-        init_tensor = (init_tensor / 2 + 0.5).clamp(0, 1)
-        return init_tensor
+        init_tensor = (init_tensor["sample"] / 2 + 0.5).clamp(0, 1)
+        return transforms.ToPILImage()(init_tensor[0])
 
     def _render(self, init_image: Image = None, num: int = 1):
         set_seed(self.settings.seed)
         prompt = [str(self.prompt)] * num
         if init_image is None:
-            init_tensor = self._init_tensor()
-        else:
-            init_tensor = transforms.ToTensor()(
-                init_image.resize((self.settings.width, self.settings.height))
-            ).unsqueeze_(0)
+            init_image = self._init_image()
         with autocast("cuda"):
             result = self._pipe(
                 prompt,
-                init_image=init_tensor,
+                init_image=init_image,
                 strength=self.settings.strength,
                 guidance_scale=self.settings.cfg,
                 num_inference_steps=self.settings.iters,
             )
-        return result
+        return result["images"]
 
     def _update_settings(self, **kwargs):
         for key, value in kwargs.items():
@@ -440,7 +436,10 @@ class StableWorkshop:
         if not self.brainstormed:
             raise RuntimeError("Cannot tune until we've `brainstorm`ed.")
         self._update_settings(**kwargs)
-        image = self._render(init_image=self.brainstormed[idx].image)[0]
+        init_image = self.brainstormed[idx].image.resize(
+            (self.settings.width, self.settings.height)
+        )
+        image = self._render(init_image=init_image)[0]
         self.generated.append(
             StableImage(
                 prompt=str(self.prompt),
