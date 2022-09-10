@@ -474,7 +474,10 @@ class StableWorkshop:
         Any generated images will be added to `generated`.
         """
         self._update_settings(**kwargs)
-        image = self._render(init_image=self.generated[idx].image)[0]
+        init_image = self.generated[idx].image.resize(
+            (self.settings.width, self.settings.height)
+        )
+        image = self._render(init_image=init_image)[0]
         self.generated.append(
             StableImage(
                 prompt=str(self.prompt),
