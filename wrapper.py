@@ -24,6 +24,7 @@ import os
 from copy import copy
 from math import sqrt, ceil
 from typing import Callable, Iterable, Union
+import warnings
 import yaml
 
 # pylint: disable=no-name-in-module
@@ -475,6 +476,11 @@ class StableWorkshop:
         Any generated images will be added to `generated`.
         """
         self._update_settings(**kwargs)
+        if self.generated[idx].settings.seed == self.settings.seed:
+            warnings.warn(
+                "The current seed and the seed used to generate the image are "
+                'the same. This can lead to undesired effects, like "burn-in".'
+            )
         init_image = self.generated[idx].image.resize(
             (self.settings.width, self.settings.height)
         )
