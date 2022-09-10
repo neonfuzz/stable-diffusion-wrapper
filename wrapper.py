@@ -10,12 +10,14 @@ Functions:
     show_image_grid - display images in a grid
 """
 
+# TODO: memory-saving tricks lead to multiple images generated per batch?
 # TODO: trim brainstormed
 # TODO: grid_search
 # TODO: draft (with faster noise scheduler)
 # TODO: garbage collection on the gpu
 # TODO: average images in latent space
 # TODO: "working" image, which can be set or loaded from file
+# TODO: interactive inpainting?
 
 # pylint: disable=no-member
 
@@ -311,6 +313,7 @@ class StableWorkshop:
             **kwargs,
         )
         self._pipe = self._pipe.to("cuda")
+        self._pipe.enable_attention_slicing()
 
     def _init_image(self):
         latents = torch.randn(
