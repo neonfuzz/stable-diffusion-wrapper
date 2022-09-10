@@ -12,7 +12,6 @@ Functions:
 
 # TODO: memory-saving tricks lead to multiple images generated per batch?
 # TODO: trim brainstormed
-# TODO: grid_search
 # TODO: draft (with faster noise scheduler)
 # TODO: garbage collection on the gpu
 # TODO: average images in latent space
@@ -24,6 +23,7 @@ Functions:
 import os
 from copy import copy
 from math import sqrt, ceil
+from typing import Callable, Iterable, Union
 import yaml
 
 # pylint: disable=no-name-in-module
@@ -286,6 +286,7 @@ class StableWorkshop:
         hallucinate - generate an image from scratch
         tune - generate an image using a `brainstorm`ed image as a template
         refine - generate an image using a `generated` image as a template
+        grid_search - search across multiple idxs and seeds
         save - save all `generated` images
     """
 
@@ -488,6 +489,38 @@ class StableWorkshop:
         )
         if show is True:
             image.show()
+
+    def grid_search(
+        self,
+        idxs: Union[Iterable[int], int],
+        seeds: Union[Iterable[int], int],
+        func: Callable = None,
+        **kwargs,
+    ):
+        """Generate across multiple seeds and indices.
+
+        Args:
+            idxs (int or list of int): indices to search across
+            seeds (int or list of int): seeds to search across,
+                default: [271, 314159, 42, 57721, 60221023]
+            func (callable): function e.g. `tune` or `refine`,
+                default: `tune`
+
+            Additional kwargs are used at render time for this call only.
+
+        Any generated images will be added to `generated`.
+        """
+        self._update_settings(**kwargs)
+        if isinstance(idxs, int):
+            idxs = [idxs]
+        if isinstance(seeds, int):
+            seeds = [seeds]
+        seeds = seeds or [271, 314159, 42, 57721, 60221023]
+        func = func or self.tune
+        for seed in seeds:
+            self.settings.seed = seed
+            for idx in idxs:
+                func(idx)
 
     def save(self):
         """Save all `generated` images. See `StableImage.save`."""
