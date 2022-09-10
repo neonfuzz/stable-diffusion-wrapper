@@ -400,25 +400,30 @@ class StableWorkshop:
         if show is True:
             self.show_brainstormed()
 
-    # TODO: temporarily set strength
     def hallucinate(self, show: bool = True, **kwargs):
         """Generate an image from scratch.
 
         Args:
             show (bool): show the image after generation, default=True
 
-            Additional kwargs are updated in settings and
+            Additional kwargs (except strength) are updated in settings and
             will persist after calling this method.
+
+        `strength` will be temporarily set to 1.0 for this method call,
+        regardless of internal settings or kwargs.
 
         Any generated images will be added to `generated`.
         """
+        strength = copy(self.settings.strength)
         self._update_settings(**kwargs)
+        self.settings.strength = 1.0
         image = self._render()[0]
         self.generated.append(
             StableImage(
                 prompt=str(self.prompt), settings=self.settings, image=image
             )
         )
+        self.settings.strength = strength
         if show is True:
             image.show()
 
