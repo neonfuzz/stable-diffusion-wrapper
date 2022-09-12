@@ -505,8 +505,8 @@ class StableWorkshop:
 
     def grid_search(
         self,
-        idxs: Union[Iterable[int], int],
-        seeds: Union[Iterable[int], int],
+        idxs: Union[Iterable[int], int] = None,
+        seeds: Union[Iterable[int], int] = None,
         func: Callable = None,
         **kwargs,
     ):
