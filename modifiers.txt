@@ -12,6 +12,7 @@ https://moritz.pm/posts/parameters
 
 https://lexica.art/
 
+http://dallery.gallery/wp-content/uploads/2022/07/The-DALL%C2%B7E-2-prompt-book-v1.02.pdf
 
 Artists
 =======
@@ -25,6 +26,7 @@ Thomas Kinkade (cottages, homey, colorful)
 
 Fantasy Landscapes
 ------------------
+Lisa Frank (saturated, fluorescent, cartoonish, detailed)
 Tyler Edlin (colorful, digital, painterly, soft)
 Michael Whelan (colorful, bold, cover art)
 Mark Simonetti (intricate, broody)
@@ -32,6 +34,7 @@ James Paick (intricate, post-apocalyptic)
 
 Fantasy Characters
 ------------------
+Beatrix Potter (animals, storybook, colorful)
 Justin Gerard (warm, colorful, intricate)
 Tomasz Alen Kopera (intricate, earthy, cinematic)
 Victor Adame Minguez (painterly, mtg-esque)
@@ -47,6 +50,7 @@ Cyberpunk
 ---------
 Josan Gonzalez (intricate, colorful, cel shading)
 Marek Okon (painterly, dark, realistic)
+Michal Karcz (photorealistic, cinematic)
 
 Sci-Fi
 ------
@@ -69,6 +73,7 @@ Comic Book
 Kim Jung Gi (black and white, intricate)
 Junji Ito (b/w inks, uncanny valley)
 Moebius aka Jean Giraud (60s graphic novel)
+Roy Lichenstein (halftone dots, comic detail, pop art)
 
 Horror
 ------
@@ -79,8 +84,11 @@ Zdzisław Beksiński (painterly, surreal)
 Photography
 -----------
 (NOTE: combining photographers doesn't work very well)
+Dorothea Lange (depression era black and white)
+George Hurrell (dramatic black and white portraits)
 Peter Lindbergh (black and white portraits, elaborate backgrounds)
 Yousuf Karsh (black and white portraits, close up)
+Martin Schoeller (close-up color portraits)
 Annie Leibovitz (intricate portrait photography)
 Ansel Adams (black and white landscape photography)
 Mat Collishaw (still life, flowers)
@@ -111,10 +119,6 @@ Quality Modifiers
 4k uhd
 8k resolution
 8k uhd
-intricate
-filigree
-ornate
-embellishments
 perfectionism
 masterpiece
 unsplash photo contest winner
@@ -126,21 +130,163 @@ deviantart
 cgsociety
 
 
+Mood Modifiers
+==============
+
+Positive, low energy    Positive, high energy
+--------------------    ---------------------
+balmy                   brash
+calm                    bright
+comforting              colorful
+cosy                    dynamic
+delicate                ecstatic
+elegant                 energetic
+ethereal                exciting
+graceful                expressive
+light                   hot
+mild                    joyful
+pastel                  kaleidoscopic
+peaceful                lively
+placid                  passionate
+quiet                   psychedelic
+relaxed                 rich
+serene                  romantic
+soft                    saturated
+soothing                spirited
+subtle                  vibrant
+tender                  vivid
+tranquil
+
+Negative, low energy    Negative, high energy
+--------------------    ---------------------
+bleak                   apocalyptic
+depressing              dark
+desaturated             doom
+dismal                  dreadful
+dreary                  forbidding
+dull                    frightful
+funereal                ghastly
+gloomy                  ghostly
+grey                    gloomy
+melancholic             harrowing
+mournful                haunting
+muted                   hideous
+pale                    ominous
+sad                     shadowy
+somber                  shocking
+subdued                 sinister
+tired                   stormy
+washed-out              terrifying
+weary                   terror
+                        threatening
+                        unnerving
+
+
+Size and Structure
+==================
+
+Big and Free            Big and Structured
+------------            ------------------
+amorphous               angular
+bold                    artificial
+chaotic                 blocks
+churning                composed
+curvaceous              defined
+distorted               dignified
+earthy                  geometric
+emotive                 imposing
+flowing                 lines
+intuitive               manmade
+lush                    minimalist
+natural                 monumental
+organic                 ordered
+random                  perspective
+riotous                 rhythmic
+swirling                rigorous
+tumultuous              robust
+turbulent               straight
+uneven                  unified
+
+Small and Free          Small and Structured
+--------------          --------------------
+brash                   accurate
+casual                  decorative
+daring                  delicate
+experimental            detailed
+expressive              elaborate
+extemporaneous          elegant
+improvisational         embellishments
+jaunty                  fine
+light                   filigree
+loose                   intricate
+offhand                 lavish
+playful                 meticulous
+random                  neat
+sketched                opulent
+spontaneous             ornamented
+unplanned               ornate
+                        precise
+                        realistic
+
+
 Style Modifiers
 ===============
 
 Lighting
 --------
+golden hour:
+    dusk
+    sunset
+    sunrise
+    warm lighting
+    strong shadows
+blue hour:
+    twilight
+    cool lighting
+    ISO 1200
+    slow shutter speed
+midday:
+    harsh overhead sunlight
+    directional sunlight
+overcast:
+    flat lighting
+indoor, warm:
+    warm lighting
+    2700K
+indoor, cold:
+    fluorescent lighting
+    4800K
+indoor, high-key:
+    neutral
+    flat
+    even
+    corporate
+    professional
+    ambient
+indoor, low-key:
+    dramatic
+    single light source
+    high-contrast
+studio lighting:
+    professional lighting
+    studio portrait
+    studio lighting
+    well-lit
+directional:
+    lit from [above/below]
+    side lighting
+    backlighting
+    backlit
 god rays
 radiant light rays
 hard shadows
-studio lighting
 soft lighting
 diffused lighting
 rim lighting
 volumetric lighting
 specular lighting
 cinematic lighting
+dramatic lighting
 luminescence
 translucency
 subsurface scattering
@@ -157,13 +303,12 @@ Portraits
 portrait
 portrait photography
 professional photo
+editorial fashion photography
 character design
 graphic novel character
 "wearing an X costume"
 full body
 cinematic
-dramatic lighting
-golden hour
 highly-detailed symmetric face
 unique nose
 fantastic eyes
@@ -171,15 +316,45 @@ intricate eyes
 
 Photography
 -----------
-dramatic studio lighting
-sharp focus
-depth of field
-f/8
-35mm lens
+proximity:
+    extreme close-up
+    close-up
+    medium shot
+    long shot
+    extreme long shot
+position:
+    overhead view
+    low angle
+    aerial view
+    tilted frame
+    over-the-shoulder shot
+fast shutter speed:
+    high speed
+    action photo
+    1/1000 sec shutter
+slow shutter speed:
+    1 sec shutter
+    long exposure
+bokeh:
+    f/8
+    shallow depth of field
+    blur
+    out-of-focus background
+telephoto lens:
+    sigma 500mm
+    f/5
+    shot from afar
+macro lens:
+    macro photo
+    sigma 105mm
+    f2.8
+wide angle lens:
+    15mm
+deep depth of field:
+    f/22
+    35mm
+    sharp focus
 fisheye lens
-macro lens
-telephoto lens
-wide angle lens
 cyanotype
 ambrotype
 calotype
@@ -187,12 +362,13 @@ daguerreotype
 tintype
 shot on film
 polaroid
+color splash
 sabattier effect
 sabattier filter
 multiple exposure
-long exposure
-bokeh
 tilt-shift
+motion blur
+"film still of..."
 
 Painting
 --------
@@ -225,6 +401,8 @@ Drawing
 -------
 sketched
 sketch
+pencil sketch
+charcoal sketch
 line drawing
 line art
 blackboard
@@ -238,6 +416,7 @@ crayon art
 graphite
 pastel
 pen
+storybook
 
 Street Art
 ----------
@@ -250,12 +429,17 @@ Comic
 anime
 caricature
 cel shading
+vector art
+voroni diagram
 chibi
 graphic novel
+political cartoon
 halftone
 manga
 noir line art
 toonami
+vintage disney
+1990s disney
 avatar, the last airbender
 howl's moving castle
 marvel comics
@@ -263,7 +447,9 @@ marvel comics
 3D Art
 ------
 3d art
-lowpoly
+low poly
+layered paper
+isometric
 volumetric lighting
 raytracing
 blender
@@ -280,11 +466,24 @@ Sculpture
 ---------
 sculpture
 bone carving
-marble
+marble (statue)
+bronze (statue)
+crystal (figure)
+jade sculpture
+gold
+silver
 ice carving
+butter sculputre
+topiary
+plant sculpture
+fiberglass
 plasticine
+ceramic
+clay
+pottery
 porcelain
 classical greek
+bust
 
 Colorful
 --------
@@ -302,6 +501,7 @@ holography
 stained glass
 tarot card
 labor poster
+constructivist
 neon
 kaliedoscope
 pastel
@@ -360,6 +560,8 @@ Science Fiction
 ---------------
 cyberpunk
 steampunk
+dieselpunk
+biopunk
 clockpunk
 2001: a space odyssey
 blade runner 2049
