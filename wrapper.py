@@ -11,8 +11,7 @@ Functions:
 """
 
 # TODO: memory-saving tricks lead to multiple images generated per batch?
-# TODO: trim brainstormed
-# TODO: draft (with faster noise scheduler)
+# TODO: crop brainstormed
 # TODO: garbage collection on the gpu
 # TODO: average images in latent space
 # TODO: "working" image, which can be set or loaded from file
@@ -28,7 +27,11 @@ import warnings
 import yaml
 
 # pylint: disable=no-name-in-module
-from diffusers import StableDiffusionImg2ImgPipeline
+from diffusers import (
+    LMSDiscreteScheduler,
+    PNDMScheduler,
+    StableDiffusionImg2ImgPipeline,
+)
 from diffusers.training_utils import set_seed
 from PIL import Image
 import torch
@@ -51,8 +54,6 @@ def show_image_grid(imgs, rows=None, cols=None):
     grid.show()
 
 
-# TODO: sampling method (k_lms, k_ddim, k_euler_a, k_dpl_2_a)
-# https://www.reddit.com/r/StableDiffusion/comments/x41n87/how_to_get_images_that_dont_suck_a/
 class StableSettings:
     """Container for holding stable diffusion settings.
 
@@ -288,6 +289,8 @@ class StableWorkshop:
 
     Methods:
         reset - reset workshop to default values
+        draft_mode - enable drafting
+        draft_off - disable drafting
         show_brainstormed - display brainstormed images
         show_generated - display generated images
         brainstorm - generate many low-quality images
@@ -304,6 +307,7 @@ class StableWorkshop:
         self.settings = StableSettings(**kwargs)
         self.generated = []
         self.brainstormed = []
+        self._draft = False
         for key in self.prompt.dict:
             fget = lambda self, k=key: self.prompt[k]
             fset = lambda self, value, k=key: setattr(self.prompt, k, value)
@@ -369,10 +373,52 @@ class StableWorkshop:
 
         Zeroes out `generated` and `brainstormed`
         """
+        self.draft_off()
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)
         self.generated = []
         self.brainstormed = []
+
+    def draft_mode(self, iters: int = 10):
+        """Enable draft mode.
+
+        When draft mode is enabled, the LMS (rather than PNDM) noise scheduler
+        is used. This scheduler converges much more quickly (~10 iterations),
+        but gives less-good results. It's best used for getting the feel of a
+        seed and fine-tuning a prompt before committing to a longer run time.
+
+        When draft mode is enabled, no outputs are saved to `generated`.
+
+        Args:
+            iters (int): number of iterations to draft with
+        """
+        self._draft = True
+        self._pipe.scheduler = LMSDiscreteScheduler(
+            beta_start=self._pipe.scheduler.beta_start,
+            beta_end=self._pipe.scheduler.beta_end,
+            beta_schedule=self._pipe.scheduler.beta_schedule,
+        )
+        self.settings.iters = iters
+
+    def draft_off(self, iters: int = 50):
+        """Disable draft mode.
+
+        When draft mode is disabled, the PNDM (rather than LMS) noise scheduler
+        is used. The scheduler takes longer to converge (~50 iterations), but
+        generally produces better results. It's best used when you've finished
+        fine-tuning and are ready to generate your final result.
+
+        Args:
+            iters (int): number of iterations to generate with
+        """
+        self._draft = False
+        self._pipe.scheduler = PNDMScheduler(
+            beta_start=self._pipe.scheduler.beta_start,
+            beta_end=self._pipe.scheduler.beta_end,
+            beta_schedule=self._pipe.scheduler.beta_schedule,
+            skip_prk_steps=True,
+        )
+        self.settings.iters = iters
 
     def show_brainstormed(self):
         """Show brainstormed images in a grid."""
@@ -399,11 +445,16 @@ class StableWorkshop:
         settings = copy(self.settings)
         self._update_settings(**kwargs)
 
+        draft = self._draft
+        if not draft:
+            self.draft_mode()
         images = self._render(num=num)
         self.brainstormed = [
             StableImage(prompt=self.prompt, settings=self.settings, image=i)
             for i in images
         ]
+        if not draft:
+            self.draft_off()
 
         self.settings = settings
         if show is True:
@@ -432,6 +483,14 @@ class StableWorkshop:
                 prompt=str(self.prompt), settings=self.settings, image=image
             )
         )
+        if not self._draft:
+            self.generated.append(
+                StableImage(
+                    prompt=str(self.prompt),
+                    settings=self.settings,
+                    image=image,
+                )
+            )
         self.settings.strength = strength
         if show is True:
             image.show()
@@ -457,14 +516,15 @@ class StableWorkshop:
             (self.settings.width, self.settings.height)
         )
         image = self._render(init_image=init_image)[0]
-        self.generated.append(
-            StableImage(
-                prompt=str(self.prompt),
-                settings=self.settings,
-                image=image,
-                init=self.brainstormed[idx],
+        if not self._draft:
+            self.generated.append(
+                StableImage(
+                    prompt=str(self.prompt),
+                    settings=self.settings,
+                    image=image,
+                    init=self.brainstormed[idx],
+                )
             )
-        )
         if show is True:
             image.show()
 
@@ -492,14 +552,15 @@ class StableWorkshop:
             (self.settings.width, self.settings.height)
         )
         image = self._render(init_image=init_image)[0]
-        self.generated.append(
-            StableImage(
-                prompt=str(self.prompt),
-                settings=self.settings,
-                image=image,
-                init=self.generated[idx],
+        if not self._draft:
+            self.generated.append(
+                StableImage(
+                    prompt=str(self.prompt),
+                    settings=self.settings,
+                    image=image,
+                    init=self.generated[idx],
+                )
             )
-        )
         if show is True:
             image.show()
 
