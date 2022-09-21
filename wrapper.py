@@ -316,8 +316,8 @@ class StableWorkshop:
         returns corresponding item in `generated`
     """
 
-    def __init__(self, **kwargs):
-        self._init_model()
+    def __init__(self, version="3", **kwargs):
+        self._init_model(version)
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)
         self.generated = []
@@ -341,9 +341,12 @@ class StableWorkshop:
     def __setitem__(self, idx, new):
         self.generated[idx] = new
 
-    def _init_model(self, **kwargs):
+    def _init_model(self, version, **kwargs):
+        version = str(version)
+        if version not in [str(i) for i in range(1, 5)]:
+            raise ValueError(f"`version` needs to be 1-4, not {version}")
         self._pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
-            "CompVis/stable-diffusion-v1-3",
+            f"CompVis/stable-diffusion-v1-{version}",
             torch_dtype=torch.float16,
             revision="fp16",
             use_auth_token=True,
