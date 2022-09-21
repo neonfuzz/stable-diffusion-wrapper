@@ -593,6 +593,7 @@ class StableWorkshop:
         idxs: Union[Iterable[int], int] = None,
         seeds: Union[Iterable[int], int] = None,
         func: Callable = None,
+        hallucinate: bool = False,
         **kwargs,
     ):
         """Generate across multiple seeds and indices.
@@ -603,12 +604,14 @@ class StableWorkshop:
                 default: [271, 314159, 42, 57721, 60221023]
             func (callable): function e.g. `tune` or `refine`,
                 default: `tune`
+            hallucinate (bool): whether or not to hallucinate in addition
+                to `func`, default: False
 
             Additional kwargs are used at render time for this call only.
 
         Any generated images will be added to `generated`.
         """
-        self._update_settings(**kwargs)
+        start_seed = self.settings.seed
         if isinstance(idxs, int):
             idxs = [idxs]
         if isinstance(seeds, int):
@@ -617,8 +620,11 @@ class StableWorkshop:
         func = func or self.tune
         for seed in seeds:
             self.settings.seed = seed
+            if hallucinate:
+                self.hallucinate(**kwargs)
             for idx in idxs:
-                func(idx)
+                func(idx, **kwargs)
+        self.settings.seed = start_seed
 
     def save(self):
         """Save all `generated` images. See `StableImage.save`."""
