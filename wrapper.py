@@ -311,6 +311,9 @@ class StableWorkshop:
         refine - generate an image using a `generated` image as a template
         grid_search - search across multiple idxs and seeds
         save - save all `generated` images
+
+    When indexed:
+        returns corresponding item in `generated`
     """
 
     def __init__(self, **kwargs):
@@ -328,6 +331,15 @@ class StableWorkshop:
             fget = lambda self, k=key: self.settings[k]
             fset = lambda self, value, k=key: setattr(self.settings, k, value)
             setattr(self.__class__, key, property(fget=fget, fset=fset))
+
+    def __len__(self):
+        return len(self.generated)
+
+    def __getitem__(self, idx):
+        return self.generated[idx]
+
+    def __setitem__(self, idx, new):
+        self.generated[idx] = new
 
     def _init_model(self, **kwargs):
         self._pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
