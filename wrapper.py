@@ -216,6 +216,7 @@ class StableImage:
     Methods:
         show: display the image
         save: save the image and settings to file
+        open: open an image from file
     """
 
     def __init__(
@@ -236,6 +237,17 @@ class StableImage:
     def show(self):
         """Show the image."""
         self._image.show()
+
+    @classmethod
+    def open(cls, fpath: str):
+        """Open an image from file.
+
+        Args:
+            fpath (str): path to file
+        """
+        return StableImage(
+            prompt=fpath, settings=None, image=Image.open(fpath)
+        )
 
     def save(self):
         """Save the image and its associated settings.
