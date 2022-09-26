@@ -8,6 +8,7 @@ Classes:
 
 Functions:
     show_image_grid - display images in a grid
+    load_learned_embed_in_clip - load a learned embedding
 """
 
 # TODO: memory-saving tricks lead to multiple images generated per batch?
@@ -34,6 +35,7 @@ from diffusers import (
 )
 from diffusers.training_utils import set_seed
 from PIL import Image
+from transformers import CLIPTextModel, CLIPTokenizer
 import torch
 from torch import autocast
 from torchvision import transforms
@@ -52,6 +54,51 @@ def show_image_grid(imgs, rows=None, cols=None):
         grid.paste(img, box=(i % cols * width, i // cols * height))
 
     grid.show()
+
+
+def load_learned_embed_in_clip(
+    learned_embeds_path: str,
+    text_encoder: CLIPTextModel,
+    tokenizer: CLIPTokenizer,
+    token: str = None,
+):
+    """Load (in place) a learned embedding into a CLIP model.
+
+    Args:
+        learned_embeds_path (str): path to the '.bin' file for learned weights
+        text_encoder (CLIPTextModel): CLIP text encoder
+        tokenizer (CLIPTokenizer): CLIP tokenizer
+        token (str): string used to represent the token;
+            default: load from file
+    """
+    loaded_learned_embeds = torch.load(learned_embeds_path, map_location="cpu")
+
+    # separate token and the embeds
+    trained_token = list(loaded_learned_embeds.keys())[0]
+    embeds = loaded_learned_embeds[trained_token]
+
+    # cast to dtype of text_encoder
+    dtype = text_encoder.get_input_embeddings().weight.dtype
+    embeds.to(dtype)
+
+    # add the token in tokenizer
+    token = token if token is not None else trained_token
+    num_added_tokens = tokenizer.add_tokens(token)
+    if num_added_tokens == 0:
+        raise ValueError(
+            f"The tokenizer already contains the token {token}. Please pass a "
+            "different `token` that is not already in the tokenizer."
+        )
+
+    # resize the token embeddings
+    text_encoder.resize_token_embeddings(len(tokenizer))
+
+    # get the id for the token and assign the embeds
+    token_id = tokenizer.convert_tokens_to_ids(token)
+    text_encoder.get_input_embeddings().weight.data[token_id] = embeds
+
+    # log to screen
+    print(f"Added token '{token}' to the CLIP model.")
 
 
 class StableSettings:
@@ -300,6 +347,7 @@ class StableWorkshop:
         as attributes within the StableWorkshop class.
 
     Methods:
+        load_token - load a custom-trained token
         reset - reset workshop to default values
         draft_mode - enable drafting
         draft_off - disable drafting
@@ -391,6 +439,18 @@ class StableWorkshop:
     def _update_settings(self, **kwargs):
         for key, value in kwargs.items():
             self.settings[key] = value
+
+    def load_token(self, fpath: str, token: str = None):
+        """Load a trained token into the model.
+
+        Args:
+            fpath (str): path to the '.bin' file for learned weights
+            token (str): string used to represent the token;
+                default: load from file
+        """
+        load_learned_embed_in_clip(
+            fpath, self._pipe.text_encoder, self._pipe.tokenizer, token
+        )
 
     def reset(self, **kwargs):
         """Reset the Workshop to default values.
