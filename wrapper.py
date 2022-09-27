@@ -161,7 +161,6 @@ class StableSettings:
         return self.__dict__
 
 
-# TODO: init settings for different modes
 class StablePrompt:
     """Container for holding Stable Diffusion Prompts.
 
@@ -185,6 +184,16 @@ class StablePrompt:
         artist_str (str): represent `artists` as a string
         details_str (str): represent `artists` as a string
         modifiers_str (str): represent `artists` as a string
+
+    Methods:
+        painting: set defaults to emulate painting
+        photo: set defaults to emulate photography
+        render: set defaults to emulate 3d graphics
+        rainbow: set defaults to be very colorful
+        manga: set defaults to emulate anime
+        scifi: set defaults to emulate science fiction movies
+        portrait: set defaults to emulate a painted portrait
+        wildlife: set defaults to emulate wildlife photography
     """
 
     def __init__(
@@ -217,6 +226,80 @@ class StablePrompt:
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
+    def painting(self):
+        """Set medium and modifiers for painting."""
+        self.medium = "oil painting on canvas"
+        self.modifiers = [
+            "intricate",
+            "4k resolution",
+            "trending on artstation",
+        ]
+
+    def photo(self):
+        """Set medium and modifiers for photography."""
+        self.medium = "a photograph"
+        self.modifiers = [
+            "intricate",
+            "4k resolution",
+            "trending on flickr",
+        ]
+
+    def render(self):
+        """Set medium, artists, and modifiers for 3d rendering."""
+        self.painting()
+        self.medium = "a 3d render"
+        self.artists = ["Pixar"]
+        self.modifiers = [
+            "raytracing",
+            "octane render",
+            "unreal engine",
+        ] + self.modifiers
+
+    def rainbow(self):
+        """Set medium, artists, and modifiers for psychadelic colors."""
+        self.painting()
+        self.artists = ["Lisa Frank", "Thomas Kinkade", "Georgia O'Keefe"]
+        self.modifiers.insert(0, "kaliedoscope")
+
+    def manga(self):
+        """Set medium, artists, and modifiers for manga/anime."""
+        self.painting()
+        self.medium = "manga"
+        self.artists = ["Studio Ghibli"]
+
+    def scifi(self):
+        """Set medium, artists, and modifiers for science fiction scenes."""
+        self.photo()
+        self.medium = "a film still"
+        self.artists = ["Ridley Scott", "Simon Stalenhag"]
+
+    def portrait(self):
+        """Set all fields for a painterly portrait of a woman."""
+        self.painting()
+        self.subject = "a woman"
+        self.artists = ["Jesper Ejsing", "Annie Leibovitz"]
+        self.details = [
+            "fantastic eyes",
+            "highly-detailed and symmetric face",
+            "professional lighting",
+            "studio portrait",
+            "studio lighting",
+            "well-lit",
+        ]
+
+    def wildlife(self):
+        """Set all fields for wildlife photography of a jaguar."""
+        self.photo()
+        self.medium = "wildlife photography"
+        self.subject = "a jaguar"
+        self.artists = ["Marsel Van Oosten"]
+        self.details = [
+            "telephoto lens",
+            "sigma 500mm",
+            "f/5",
+            "shot from afar",
+        ]
 
     @property
     def dict(self):
