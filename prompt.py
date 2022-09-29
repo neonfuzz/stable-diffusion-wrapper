@@ -88,20 +88,19 @@ class StablePrompt:
         self.__dict__[key] = value
 
     def hallucinate(
-        self, subject: str = None, genre: str = "epic fantasy", **kwargs
+        self, genre: str = "epic fantasy", subject: str = None, **kwargs
     ):
         """Improve your prompt with GPT-3.
 
         Requires an OpenAI API key. Set environment variable "OPENAI_API_KEY".
         https://beta.openai.com/account/api-keys
 
-        Will replace `subject` and `details` with the new prompt.
+        Will replace `subject` with the new prompt.
 
         Args:
-            subject (str): topic to send to GPT-3,
-                default: `subject` + `details_str`
             genre (str): what kind of "movie" should GPT-3 describe?
                 default: 'epic fantasy'
+            subject (str): topic to send to GPT-3, default `subject`
             model (str): OpenAI model name, default: 'text-davinci-002'
             max_tokens (int): maximum tokens to generate, default: 50
             top_p (float): sampling probability; 0=deterministic 1=random,
@@ -109,7 +108,7 @@ class StablePrompt:
 
         Additional kwargs are passed to OpenAI's `Completion`.
         """
-        subject = subject or f"{self.subject}{self.details_str}"
+        subject = subject or self.subject
         prompt = (
             "You are an extremely creative award-winning writer for a "
             f"new {genre} movie. Your task is to come up with "
@@ -125,7 +124,6 @@ class StablePrompt:
             **kwargs,
         )
         self.subject = result["choices"][0]["text"].strip()
-        self.details = []
         return f"New subject: {self.subject}"
 
     def painting(self):
