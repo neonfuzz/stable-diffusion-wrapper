@@ -443,7 +443,6 @@ class StableWorkshop:
         self._update_settings(**kwargs)
         self.settings.strength = 1.0
         image = self._render()[0]
-            )
         image = StableImage(
             prompt=str(self.prompt), settings=self.settings, image=image
         )
