@@ -11,7 +11,6 @@ Functions:
 """
 
 # TODO: memory-saving tricks lead to multiple images generated per batch?
-# TODO: crop brainstormed
 # TODO: garbage collection on the gpu
 # TODO: average images in latent space
 # TODO: "working" image, which can be set or loaded from file
@@ -129,8 +128,7 @@ class StableSettings:
     Guidelines for `strength`:
         Strength controls how closely the AI will match the image output to the
         image input (as with tuning). A strength of 0.0 maintains the original
-        image. 1.0 completely changes the image (and should be used for
-        brainstorming and hallucinating.)
+        image. 1.0 completely changes the image.
 
         0.0-0.5: Stay very close to the original input. Not recommended.
         0.6-0.7: Keep structure from the input, but change details.
@@ -251,7 +249,7 @@ class StableWorkshop:
         prompt (StablePrompt): the prompt used for generating
         settings (StableSettings): the settings used for generating
         generated (list of StableImage): all images that have been generated
-        brainstormed (list of StableImage): all brainstormed images
+        drafted (list of StableImage): all drafted images
 
         Additionally, all attributes of `prompt` and `settings` are accessible
         as attributes within the StableWorkshop class.
@@ -261,11 +259,10 @@ class StableWorkshop:
         reset - reset workshop to default values
         draft_mode - enable drafting
         draft_off - disable drafting
-        show_brainstormed - display brainstormed images
+        show_drafted - display drafted images
         show_generated - display generated images
-        brainstorm - generate many low-quality images
         hallucinate - generate an image from scratch
-        tune - generate an image using a `brainstorm`ed image as a template
+        tune - generate an image using a `draft_mode` image as a template
         refine - generate an image using a `generated` image as a template
         grid_search - search across multiple idxs and seeds
         save - save all `generated` images
@@ -279,7 +276,7 @@ class StableWorkshop:
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)
         self.generated = []
-        self.brainstormed = []
+        self.drafted = []
         self._draft = False
         for key in self.prompt.dict:
             fget = lambda self, k=key: self.prompt[k]
@@ -368,13 +365,15 @@ class StableWorkshop:
         Accepts keyword arguments that can be passed to
         `StablePrompt` and `StableSettings`.
 
-        Zeroes out `generated` and `brainstormed`
+        Zeroes out `generated` and `drafted`.
+
+        Exits draft mode.
         """
         self.draft_off()
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)
         self.generated = []
-        self.brainstormed = []
+        self.drafted = []
 
     def draft_mode(self, iters: int = 10):
         """Enable draft mode.
@@ -384,7 +383,8 @@ class StableWorkshop:
         but gives less-good results. It's best used for getting the feel of a
         seed and fine-tuning a prompt before committing to a longer run time.
 
-        When draft mode is enabled, no outputs are saved to `generated`.
+        When draft mode is enabled, outputs are saved to `drafted` rather than
+        `generated`.
 
         Args:
             iters (int): number of iterations to draft with
@@ -417,45 +417,13 @@ class StableWorkshop:
         )
         self.settings.iters = iters
 
-    def show_brainstormed(self):
-        """Show brainstormed images in a grid."""
-        show_image_grid([bs.image for bs in self.brainstormed])
+    def show_drafted(self):
+        """Show drafted images in a grid."""
+        show_image_grid([bs.image for bs in self.drafted])
 
     def show_generated(self):
         """Show all generated images in a grid."""
         show_image_grid([gn.image for gn in self.generated])
-
-    def brainstorm(self, num: int = 12, show: bool = True, **kwargs):
-        """Generate many small images that can be used for `tune`ing.
-
-        Args:
-            num (int): number to generate, default=12
-            show (bool): show a grid after generation, default=True
-
-            Additional kwargs are used at render time for this call only.
-
-        Images are stored in `brainstormed` and will be overwritten
-        if `brainstorm` is called additional times.
-        """
-        kwargs["height"] = kwargs.pop("height", 256)
-        kwargs["width"] = kwargs.pop("width", 256)
-        settings = copy(self.settings)
-        self._update_settings(**kwargs)
-
-        draft = self._draft
-        if not draft:
-            self.draft_mode()
-        images = self._render(num=num)
-        self.brainstormed = [
-            StableImage(prompt=self.prompt, settings=self.settings, image=i)
-            for i in images
-        ]
-        if not draft:
-            self.draft_off()
-
-        self.settings = settings
-        if show is True:
-            self.show_brainstormed()
 
     def hallucinate(self, show: bool = True, **kwargs):
         """Generate an image from scratch.
@@ -475,30 +443,23 @@ class StableWorkshop:
         self._update_settings(**kwargs)
         self.settings.strength = 1.0
         image = self._render()[0]
-        self.generated.append(
-            StableImage(
-                prompt=str(self.prompt), settings=self.settings, image=image
             )
+        image = StableImage(
+            prompt=str(self.prompt), settings=self.settings, image=image
         )
-        if not self._draft:
-            self.generated.append(
-                StableImage(
-                    prompt=str(self.prompt),
-                    settings=self.settings,
-                    image=image,
-                )
-            )
+        if self._draft:
+            self.drafted.append(image)
+        else:
+            self.generated.append(image)
         self.settings.strength = strength
         if show is True:
             image.show()
 
     def tune(self, idx: int, show: bool = True, **kwargs):
-        """Tune a `brainstorm`ed image into a (hopefully) better image.
-
-        Can only be run after `brainstorm`.
+        """Tune a `draft_mode` image into a (hopefully) better image.
 
         Args:
-            idx (int): index of `brainstormed`
+            idx (int): index of `drafted`
             show (bool): show the image after generation, default=True
 
             Additional kwargs are updated in settings and
@@ -506,22 +467,27 @@ class StableWorkshop:
 
         Any generated images will be added to `generated`.
         """
-        if not self.brainstormed:
-            raise RuntimeError("Cannot tune until we've `brainstorm`ed.")
+        if not self.drafted:
+            raise RuntimeError(
+                "Draft something with `draft_mode` before tuning."
+            )
         self._update_settings(**kwargs)
-        init_image = self.brainstormed[idx].image.resize(
+        if self.drafted[idx].settings.seed == self.settings.seed:
+            warnings.warn(
+                "The current seed and the seed used to generate the image are "
+                'the same. This can lead to undesired effects, like "burn-in".'
+            )
+        init_image = self.drafted[idx].image.resize(
             (self.settings.width, self.settings.height)
         )
         image = self._render(init_image=init_image)[0]
-        if not self._draft:
-            self.generated.append(
-                StableImage(
-                    prompt=str(self.prompt),
-                    settings=self.settings,
-                    image=image,
-                    init=self.brainstormed[idx],
-                )
-            )
+        image = StableImage(
+            prompt=str(self.prompt), settings=self.settings, image=image
+        )
+        if self._draft:
+            self.drafted.append(image)
+        else:
+            self.generated.append(image)
         if show is True:
             image.show()
 
@@ -549,15 +515,13 @@ class StableWorkshop:
             (self.settings.width, self.settings.height)
         )
         image = self._render(init_image=init_image)[0]
-        if not self._draft:
-            self.generated.append(
-                StableImage(
-                    prompt=str(self.prompt),
-                    settings=self.settings,
-                    image=image,
-                    init=self.generated[idx],
-                )
-            )
+        image = StableImage(
+            prompt=str(self.prompt), settings=self.settings, image=image
+        )
+        if self._draft:
+            self.drafted.append(image)
+        else:
+            self.generated.append(image)
         if show is True:
             image.show()
 
