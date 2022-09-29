@@ -5,29 +5,36 @@ Classes:
     StablePrompt - contain prompt for SD
 """
 
+
 class StablePrompt:
     """Container for holding Stable Diffusion Prompts.
 
     Instance Attributes:
-        medium (str): describe type of image, default="oil painting on canvas"
         subject (str): composition subject, default="a fantasy landscape"
-        artists (list of str): artist names to guide style,
-            default=["Tyler Edlin", "Michael Whelan"]
+        medium (str): describe type of image,
+            default="a detailed matte painting"
         details (list of str): additional details to render in the image,
             default=["blue sky", "grass", "river"]
-        modifiers (list of str): keywords which will make your image better,
+        artists (list of str): artist names to guide style,
+            default=["Tyler Edlin", "Michael Whelan"]
+        trend_type (str with "{}"): type of trend, default "trending on {}"
+        trending (str): where it's trending, default "artstation"
+        movement (str): overall style, default "fantasy art"
+        flavors (list of str): style guides,
             default=[
-                "oil on canvas",
-                "intricate",
-                "4k resolution",
-                "trending on artstation"
-            ]
-        dict (dict): represent prompt as a dictionary
+                "matte painting",
+                "matte drawing",
+                "reimagined by industrial light and magic",
+                ]
 
     Read-Only Attributes:
-        artist_str (str): represent `artists` as a string
+        dict (dict): represent prompt as a dictionary
         details_str (str): represent `artists` as a string
-        modifiers_str (str): represent `artists` as a string
+        medium_str (str): represent `medium` as a string
+        artist_str (str): represent `artists` as a string
+        trending_str (str): represent `trend_type` and `trending` as a string
+        movement_str (str): represent `movement` as a string
+        flavor_str (str): represent `flavor` as a string
 
     Methods:
         painting: set defaults to emulate painting
@@ -42,27 +49,31 @@ class StablePrompt:
 
     def __init__(
         self,
-        medium="oil painting on canvas",
         subject="a fantasy landscape",
+        medium="a detailed matte painting",
         **kwargs,
     ):
-        self.medium = medium
         self.subject = subject
-        self.artists = kwargs.pop("artists", ["Tyler Edlin", "Michael Whelan"])
         self.details = kwargs.pop("details", ["blue sky", "grass", "river"])
-        self.modifiers = kwargs.pop(
-            "modifiers",
+        self.medium = medium
+        self.artists = kwargs.pop("artists", ["Tyler Edlin", "Michael Whelan"])
+        self.trend_type = kwargs.pop("trend_type", "trending on {}")
+        self.trending = kwargs.pop("trending", "artstation")
+        self.movement = kwargs.pop("movement", "fantasy art")
+        self.flavors = kwargs.pop(
+            "flavors",
             [
-                "intricate",
-                "4k resolution",
-                "trending on artstation",
+                "matte painting",
+                "matte drawing",
+                "reimagined by industrial light and magic",
             ],
         )
 
     def __repr__(self):
         return (
-            f"{self.subject}{self.medium_str}{self.artist_str}"
-            f"{self.details_str}{self.modifiers_str}"
+            f"{self.subject}{self.details_str}{self.medium_str}"
+            f"{self.artist_str}{self.trending_str}{self.movement_str}"
+            f"{self.flavors_str}"
         )
 
     def __getitem__(self, key):
@@ -72,83 +83,104 @@ class StablePrompt:
         self.__dict__[key] = value
 
     def painting(self):
-        """Set medium and modifiers for painting."""
-        self.medium = "oil painting on canvas"
-        self.modifiers = [
-            "intricate",
-            "4k resolution",
-            "trending on artstation",
-        ]
+        """Set attributes for a painting."""
+        self.subject = "a fantasy landscape"
+        self.details = ["blue sky", "grass", "river"]
+        self.medium = "a detailed matte painting"
+        self.artists = ["Tyler Edlin", "Michael Whelan"]
+        self.trending = "artstation"
+        self.movement = "fantasy art"
+        self.flavors = ["matte painting", "matte drawing"]
 
     def photo(self):
-        """Set medium and modifiers for photography."""
+        """Set attributes for photography."""
+        self.subject = "a dramatic landscape"
+        self.details = ["blue sky", "grass", "river"]
         self.medium = "a photograph"
-        self.modifiers = [
-            "intricate",
-            "4k resolution",
-            "trending on flickr",
+        self.artists = ["Ansel Adams"]
+        self.trending = "flickr"
+        self.movement = "photorealism"
+        self.flavors = [
+            "national geographic photo",
+            "sense of awe",
+            "ambient occlusion",
         ]
 
     def render(self):
-        """Set medium, artists, and modifiers for 3d rendering."""
-        self.painting()
-        self.medium = "a 3d render"
+        """Set attributes for 3d rendering."""
+        self.subject = "a robot"
+        self.details = ["toonami", "shiny"]
+        self.medium = "a computer rendering"
         self.artists = ["Pixar"]
-        self.modifiers = [
-            "raytracing",
-            "octane render",
-            "unreal engine",
-        ] + self.modifiers
+        self.trending = "cg society"
+        self.movement = "plasticien"
+        self.flavors = ["quantum wavetracing", "vray tracing", "unreal engine"]
 
     def rainbow(self):
-        """Set medium, artists, and modifiers for psychadelic colors."""
+        """Set attributes for psychadelic colors."""
         self.painting()
         self.artists = ["Lisa Frank", "Thomas Kinkade", "Georgia O'Keefe"]
-        self.modifiers.insert(0, "kaliedoscope")
+        self.trending = "behance"
+        self.movement = "psychadelic art"
+        self.flavors = ["kaliedoscope", "vaporwave", "maximalist"]
 
     def manga(self):
-        """Set medium, artists, and modifiers for manga/anime."""
+        """Set attributes for manga/anime."""
         self.painting()
-        self.medium = "manga"
-        self.artists = ["Studio Ghibli"]
+        self.artists = ["Studio Ghibli", "Hayao Mikazaki"]
+        self.movement = ""
+        self.flavors = ["anime aesthetic"]
 
     def scifi(self):
-        """Set medium, artists, and modifiers for science fiction scenes."""
-        self.photo()
-        self.medium = "a film still"
+        """Set attributes for science fiction scenes."""
+        self.subject = "a cityscape"
+        self.details = ["rain", "reflections"]
+        self.medium = "a movie still"
         self.artists = ["Ridley Scott", "Simon Stalenhag"]
+        self.trending = "cg society"
+        self.movement = "retrofuturism"
+        self.flavors = ["dystopian art, sci-fi", "futuristic"]
 
     def portrait(self):
-        """Set all fields for a painterly portrait of a woman."""
-        self.painting()
-        self.subject = "a woman"
-        self.artists = ["Jesper Ejsing", "Annie Leibovitz"]
+        """Set attributes for a painterly portrait."""
+        self.subject = "a person"
         self.details = [
             "fantastic eyes",
             "highly-detailed and symmetric face",
             "professional lighting",
-            "studio portrait",
             "studio lighting",
             "well-lit",
         ]
+        self.medium = "oil painting on canvas"
+        self.artists = ["Jesper Ejsing", "Annie Leibovitz"]
+        self.trending = "artstation"
+        self.movement = "renaissance"
+        self.flavors = ["studio portrait", "dutch golden age", "elegant"]
 
     def wildlife(self):
-        """Set all fields for wildlife photography of a jaguar."""
+        """Set attributes for wildlife photography."""
         self.photo()
-        self.medium = "wildlife photography"
         self.subject = "a jaguar"
-        self.artists = ["Marsel Van Oosten"]
         self.details = [
             "telephoto lens",
             "sigma 500mm",
             "f/5",
             "shot from afar",
         ]
+        self.medium = "wildlife photography"
+        self.artists = ["Marsel Van Oosten"]
+        self.trending = "shutterstock"
 
     @property
     def dict(self):
         """Access prompt as a dictionary."""
         return self.__dict__
+
+    @property
+    def details_str(self):
+        """Convert list of details into a prompt string."""
+        details = [""] + self.details
+        return ", ".join(details)
 
     @property
     def medium_str(self):
@@ -166,13 +198,21 @@ class StablePrompt:
         return ""
 
     @property
-    def details_str(self):
-        """Convert list of details into a prompt string."""
-        details = [""] + self.details
-        return ", ".join(details)
+    def trending_str(self):
+        """Convert trending into a prompt string."""
+        if self.trending:
+            return ", " + self.trend_type.format(self.trending)
+        return ""
 
     @property
-    def modifiers_str(self):
-        """Convert list of modifiers into a string."""
-        modifiers = [""] + self.modifiers
-        return ", ".join(modifiers)
+    def movement_str(self):
+        """Convert movement into a prompt string."""
+        if self.movement:
+            return ", " + self.movement
+        return ""
+
+    @property
+    def flavors_str(self):
+        """Convert list of flavors into a prompt string."""
+        flavors = [""] + self.flavors
+        return ", ".join(flavors)
