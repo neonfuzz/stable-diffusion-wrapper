@@ -40,6 +40,10 @@ from torchvision import transforms
 
 from prompt import StablePrompt
 
+
+SEEDS = [1337, 271, 314159, 41245, 59017, 61023]
+
+
 def show_image_grid(imgs, rows=None, cols=None):
     """Display multiple images at once, in a grid format."""
     if isinstance(imgs[0], StableImage):
@@ -139,7 +143,7 @@ class StableSettings:
     def __init__(self, **kwargs):
         self.height = kwargs.pop("height", 512)
         self.width = kwargs.pop("width", 512)
-        self.seed = kwargs.pop("seed", 1337)
+        self.seed = kwargs.pop("seed", SEEDS[0])
         self.iters = kwargs.pop("iters", 50)
         self.cfg = kwargs.pop("cfg", 6.0)
         self.strength = kwargs.pop("strength", 1.0)
@@ -552,7 +556,7 @@ class StableWorkshop:
             idxs = [idxs]
         if isinstance(seeds, int):
             seeds = [seeds]
-        seeds = seeds or [271, 314159, 42, 57721, 60221023]
+        seeds = seeds or SEEDS[1:]
         func = func or self.tune
         for seed in seeds:
             self.settings.seed = seed
