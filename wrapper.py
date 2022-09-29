@@ -217,7 +217,7 @@ class StablePrompt:
 
     def __repr__(self):
         return (
-            f"{self.medium_str}{self.subject}{self.artist_str}"
+            f"{self.subject}{self.medium_str}{self.artist_str}"
             f"{self.details_str}{self.modifiers_str}"
         )
 
@@ -310,7 +310,7 @@ class StablePrompt:
     def medium_str(self):
         """Convert medium into a prompt string."""
         if self.medium:
-            return self.medium + " of "
+            return ", " + self.medium
         return ""
 
     @property
