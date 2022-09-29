@@ -6,6 +6,10 @@ Classes:
 """
 
 
+# pylint: disable=import-error
+import openai
+
+
 class StablePrompt:
     """Container for holding Stable Diffusion Prompts.
 
@@ -37,6 +41,7 @@ class StablePrompt:
         flavor_str (str): represent `flavor` as a string
 
     Methods:
+        hallucinate: use GPT-3 to improve your prompt
         painting: set defaults to emulate painting
         photo: set defaults to emulate photography
         render: set defaults to emulate 3d graphics
@@ -81,6 +86,47 @@ class StablePrompt:
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
+    def hallucinate(
+        self, subject: str = None, genre: str = "epic fantasy", **kwargs
+    ):
+        """Improve your prompt with GPT-3.
+
+        Requires an OpenAI API key. Set environment variable "OPENAI_API_KEY".
+        https://beta.openai.com/account/api-keys
+
+        Will replace `subject` and `details` with the new prompt.
+
+        Args:
+            subject (str): topic to send to GPT-3,
+                default: `subject` + `details_str`
+            genre (str): what kind of "movie" should GPT-3 describe?
+                default: 'epic fantasy'
+            model (str): OpenAI model name, default: 'text-davinci-002'
+            max_tokens (int): maximum tokens to generate, default: 50
+            top_p (float): sampling probability; 0=deterministic 1=random,
+                default: 0.5
+
+        Additional kwargs are passed to OpenAI's `Completion`.
+        """
+        subject = subject or f"{self.subject}{self.details_str}"
+        prompt = (
+            "You are an extremely creative award-winning writer for a "
+            f"new {genre} movie. Your task is to come up with "
+            "interesting, surprising visuals of a described topic. The "
+            f"described topic is: {subject}. What interesting visual can be "
+            "shown here? Describe only one. Get right into it!"
+        )
+        result = openai.Completion.create(
+            model=kwargs.pop("model", "text-davinci-002"),
+            prompt=prompt,
+            max_tokens=kwargs.pop("max_tokens", 50),
+            top_p=kwargs.pop("top_p", 0.5),
+            **kwargs,
+        )
+        self.subject = result["choices"][0]["text"].strip()
+        self.details = []
+        return f"New subject: {self.subject}"
 
     def painting(self):
         """Set attributes for a painting."""
