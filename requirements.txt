@@ -3,3 +3,4 @@ openai
 pillow>=9.2.0
 torch
 torchvision
+questionary

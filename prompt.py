@@ -5,9 +5,20 @@ Classes:
     StablePrompt - contain prompt for SD
 """
 
+import textwrap
 
 # pylint: disable=import-error
 import openai
+import questionary
+
+
+def _select_result(choices):
+    choices = ["\n   ".join(textwrap.wrap(c)) + "\n" for c in choices]
+    result = questionary.select(
+        "Which subject should we choose?",
+        choices=choices
+    ).ask()
+    return result.replace("\n", " ").replace("    ", " ").strip()
 
 
 class StablePrompt:
@@ -105,26 +116,33 @@ class StablePrompt:
             max_tokens (int): maximum tokens to generate, default: 50
             top_p (float): sampling probability; 0=deterministic 1=random,
                 default: 0.5
+            n (int): number of descriptions to generate, default: 5
 
         Additional kwargs are passed to OpenAI's `Completion`.
         """
         subject = subject or self.subject
         prompt = (
-            "You are an extremely creative award-winning writer for a "
-            f"new {genre} movie. Your task is to come up with "
-            "interesting, surprising visuals of a described topic. The "
-            f"described topic is: {subject}. What interesting visual can be "
-            "shown here? Describe only one. Get right into it!"
+            "You are an extremely creative, award-winning writer for a new "
+            f"{genre} movie. Your task is to come up with interesting, "
+            "surprising scene ideas for a macro shot of a described scene, "
+            "based on curious exploring and logic around what sort of macro "
+            "filmable items may be found nearby and at that described scene."
+            f"The described scene is: {subject}. What interesting "
+            "macro scene can be found here that would drive the plot forward? "
+            "Describe only one and do not preface "
+            "your description with the previous location. Get right into it!"
         )
         result = openai.Completion.create(
             model=kwargs.pop("model", "text-davinci-002"),
             prompt=prompt,
             max_tokens=kwargs.pop("max_tokens", 50),
-            top_p=kwargs.pop("top_p", 0.5),
+            top_p=kwargs.pop("top_p", 0.75),
+            n=kwargs.pop("n", 5),
             **kwargs,
         )
-        self.subject = result["choices"][0]["text"].strip()
-        return f"New subject: {self.subject}"
+        choices = [c["text"].strip() for c in result["choices"]]
+        choices.insert(0, self.subject)
+        self.subject = _select_result(choices)
 
     def painting(self):
         """Set attributes for a painting."""
@@ -195,11 +213,15 @@ class StablePrompt:
             "studio lighting",
             "well-lit",
         ]
-        self.medium = "oil painting on canvas"
-        self.artists = ["Jesper Ejsing", "Annie Leibovitz"]
+        self.medium = "a portrait"
+        self.artists = ["William Forsyth", "Richard Schmid", "Michael Garmash"]
         self.trending = "artstation"
-        self.movement = "renaissance"
-        self.flavors = ["studio portrait", "dutch golden age", "elegant"]
+        self.movement = "figurative art"
+        self.flavors = [
+            "detailed painting",
+            "studio portrait",
+            "oil on canvas",
+        ]
 
     def wildlife(self):
         """Set attributes for wildlife photography."""
