@@ -1,6 +1,9 @@
+basicsr
 diffusers>=0.3.0
+gfpgan
 openai
 pillow>=9.2.0
+questionary
+realesrgan
 torch
 torchvision
-questionary

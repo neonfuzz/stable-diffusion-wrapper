@@ -38,6 +38,7 @@ import torch
 from torch import autocast
 from torchvision import transforms
 
+from gobig import upscale, gobig
 from prompt import StablePrompt
 
 
@@ -268,6 +269,7 @@ class StableWorkshop:
         hallucinate - generate an image from scratch
         tune - generate an image using a `draft_mode` image as a template
         refine - generate an image using a `generated` image as a template
+        upscale - make a generated image larger, with science
         grid_search - search across multiple idxs and seeds
         save - save all `generated` images
 
@@ -525,6 +527,58 @@ class StableWorkshop:
             self.drafted.append(image)
         else:
             self.generated.append(image)
+        if show is True:
+            image.show()
+
+    def upscale(
+        self,
+        idx: int,
+        show: bool = True,
+        render_more: bool = True,
+        face_enhance: bool = True,
+        **kwargs,
+    ):
+        """Upscale a `generated` image.
+
+        Can only be run after at least one of `hallucinate` or `tune`.
+
+        Args:
+            idx (int): index of `generated`
+            show (bool): show the image after generation, default=True
+            render_more (bool): apply more passes with Stable Diffusion to the
+                upscaled image, default=True
+            face_enhance (bool): apply a face enhancement algorithm,
+                default=True
+
+        Additional kwargs are passed to `gobig`
+
+        Any generated images will be added to `generated`.
+        """
+        if not self.generated:
+            raise RuntimeError(
+                "Generate something with `draft_off` before upscaling."
+            )
+        if self._draft:
+            raise RuntimeError("You cannot upscale while in draft mode.")
+
+        init_image = self.generated[idx]
+        if render_more:
+            image = gobig(
+                init_image,
+                prompt=str(self.prompt),
+                pipe=self._pipe,
+                face_enhance=face_enhance,
+                **kwargs,
+            )
+        else:
+            image = upscale(init_image, face_enhance=face_enhance, **kwargs)
+        image = StableImage(
+            prompt=str(self.prompt),
+            settings=self.settings,
+            image=image,
+            init=self.generated[idx],
+        )
+        self.generated.append(image)
         if show is True:
             image.show()
 
