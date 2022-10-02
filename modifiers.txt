@@ -11,7 +11,6 @@ https://weirdwonderfulai.art/resources/midjourney-style-chart-by-robomar-ai-art/
 https://moritz.pm/posts/parameters
 
 https://lexica.art/
-
 http://dallery.gallery/wp-content/uploads/2022/07/The-DALL%C2%B7E-2-prompt-book-v1.02.pdf
 
 Artists
@@ -21,24 +20,39 @@ Classical Landscapes
 --------------------
 Ansel Adams (black and white landscape photography)
 Thomas Cole (romanticism, intricate)
-Albert Bierstadt (romanticism, intricate)
+Albert Bierstadt (romanticism, intricate, cinematic)
 Thomas Kinkade (cottages, homey, colorful)
+Evgeny Lushpin (cool tones, cityscapes, intricate)
 
 Fantasy Landscapes
 ------------------
 Lisa Frank (saturated, fluorescent, cartoonish, detailed)
-Tyler Edlin (colorful, digital, painterly, soft)
+Roger Dean (saturated, intricate, surreal)
+Alena Aenami (saturated, painterly, synthwave, cityscapes)
+RHADS (colorful, painterly, surreal)
+Tyler Edlin (colorful, digital, painterly)
+Raphael Lacoste (earthy, intricate, high fantasy architecture)
+Andreas Rocha (earthy, intricate, painterly)
 Michael Whelan (colorful, bold, cover art)
-Mark Simonetti (intricate, broody)
-James Paick (intricate, post-apocalyptic)
+Christophe Vacher (colorful, intricate, cinematic)
+Ted Nasmith (colorful, intricate, lotr)
+Mark Simonetti (intricate, broody, high-contrast)
+James Paick (intricate, post-apocalyptic, cyberpunk)
 
 Fantasy Characters
 ------------------
-Beatrix Potter (animals, storybook, colorful)
+Jeremiah Ketner (saturated, chibi, storybook)
+Ross Tran (colorful, painterly, glitchy)
+J. J. Grandville (warm, engraving, storybook)
 Justin Gerard (warm, colorful, intricate)
 Tomasz Alen Kopera (intricate, earthy, cinematic)
+Brian Froud (intricate, earthy, fae)
+Anna Dittmann (intricate, pastel, floral)
+Scott Gustafson (intricate, colorful, storybook)
+Magali Villenueve (intricate, dynamic, cinematic)
 Victor Adame Minguez (painterly, mtg-esque)
 Jesper Ejsing (intricate, mtg-esque)
+Todd Lockwood (intricate, dragons, mtg-esque)
 Greg Rutkowski (painterly, intricate)
 Tom Bagshaw (portraits, painterly, dark)
 Annie Leibovitz (intricate portrait photography)
@@ -58,8 +72,9 @@ Chelsey Bonestell (60s alien landscape, intricate)
 Jim Burns (60s book covers)
 Moebius aka Jean Giraud (60s graphic novel)
 Dean Ellis (60s poster)
-Simon Stalenhag (painterly, intricate)
-John Harris (painterly, soft)
+Scott Listfield (intricate, realistic, earthy)
+Simon Stalenhag (understated, painterly, intricate)
+John Harris (pastel, painterly, soft)
 H.R. Giger (black and white, creepy)
 Ridley Scott (cinematic)
 
@@ -90,9 +105,11 @@ Peter Lindbergh (black and white portraits, elaborate backgrounds)
 Yousuf Karsh (black and white portraits, close up)
 Martin Schoeller (close-up color portraits)
 Annie Leibovitz (intricate portrait photography)
+The Associated Press (current events and people)
 Ansel Adams (black and white landscape photography)
 Mat Collishaw (still life, flowers)
 Marsel van Oosten (wildlife photography)
+National Geographic (nature)
 
 Classics
 --------
@@ -108,8 +125,10 @@ Alphonse Mucha (Art Nouveau, theatrical posters, 1800s)
 Gustav Klimt (Art Nouveau, Symbolist, gold leaf, 1900s)
 Claude Monet (Impressionism, 1900s)
 Salvador Dalí (Surrealism, 1900s)
+Frida Kahlo (Surrealism, self-portraits, 1900s)
 M.C. Escher (Modern, lithography, mathematical, 1900s)
 Andy Warhol (Modern, Pop Art, 1900s)
+Georgia O'Keefe (Modern, flowers, 1900s)
 Banksy (Modern, street art, 2000s)
 
 
@@ -128,6 +147,7 @@ trending on flickr
 trending on pixiv (anime/manga)
 deviantart
 cgsociety
+symmetry
 
 
 Mood Modifiers
@@ -369,6 +389,7 @@ multiple exposure
 tilt-shift
 motion blur
 "film still of..."
+stock photo
 
 Painting
 --------
@@ -376,7 +397,7 @@ oil on canvas
 oil on board
 watercolor painting
 acrylic painting
-airbrush
+airbrush painting
 digital art
 authentic
 masterpiece
@@ -416,7 +437,7 @@ crayon art
 graphite
 pastel
 pen
-storybook
+storybook illustration
 
 Street Art
 ----------
@@ -497,7 +518,8 @@ futuresynth
 glitch art
 cyanotype
 bokeh
-holography
+holographic
+iridescent
 stained glass
 tarot card
 labor poster
@@ -563,6 +585,7 @@ steampunk
 dieselpunk
 biopunk
 clockpunk
+seapunk
 2001: a space odyssey
 blade runner 2049
 interstellar
