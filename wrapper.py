@@ -264,8 +264,8 @@ class StableWorkshop:
         reset - reset workshop to default values
         draft_mode - enable drafting
         draft_off - disable drafting
+        show - display generated images
         show_drafted - display drafted images
-        show_generated - display generated images
         hallucinate - generate an image from scratch
         tune - generate an image using a `draft_mode` image as a template
         refine - generate an image using a `generated` image as a template
@@ -423,13 +423,13 @@ class StableWorkshop:
         )
         self.settings.iters = iters
 
-    def show_drafted(self):
-        """Show drafted images in a grid."""
-        show_image_grid([bs.image for bs in self.drafted])
-
-    def show_generated(self):
+    def show(self, **kwargs):
         """Show all generated images in a grid."""
-        show_image_grid([gn.image for gn in self.generated])
+        show_image_grid([gn.image for gn in self.generated], **kwargs)
+
+    def show_drafted(self, **kwargs):
+        """Show drafted images in a grid."""
+        show_image_grid([bs.image for bs in self.drafted], **kwargs)
 
     def hallucinate(self, show: bool = True, **kwargs):
         """Generate an image from scratch.
@@ -437,8 +437,8 @@ class StableWorkshop:
         Args:
             show (bool): show the image after generation, default=True
 
-            Additional kwargs (except strength) are updated in settings and
-            will persist after calling this method.
+        Additional kwargs (except strength) are updated in settings and will
+        persist after calling this method.
 
         `strength` will be temporarily set to 1.0 for this method call,
         regardless of internal settings or kwargs.
@@ -467,8 +467,8 @@ class StableWorkshop:
             idx (int): index of `drafted`
             show (bool): show the image after generation, default=True
 
-            Additional kwargs are updated in settings and
-            will persist after calling this method.
+        Additional kwargs are updated in settings and will persist after
+        calling this method.
 
         Any generated images will be added to `generated`.
         """
@@ -487,7 +487,10 @@ class StableWorkshop:
         )
         image = self._render(init_image=init_image)[0]
         image = StableImage(
-            prompt=str(self.prompt), settings=self.settings, image=image
+            prompt=str(self.prompt),
+            settings=self.settings,
+            image=image,
+            init=self.drafted[idx],
         )
         if self._draft:
             self.drafted.append(image)
@@ -505,11 +508,15 @@ class StableWorkshop:
             idx (int): index of `generated`
             show (bool): show the image after generation, default=True
 
-            Additional kwars are updated in settings and
-            will persist after calling this method.
+        Additional kwargs are updated in settings and will persist after
+        calling this method.
 
         Any generated images will be added to `generated`.
         """
+        if not self.generated:
+            raise RuntimeError(
+                "Generate something with `draft_off` before tuning."
+            )
         self._update_settings(**kwargs)
         if self.generated[idx].settings.seed == self.settings.seed:
             warnings.warn(
@@ -521,7 +528,10 @@ class StableWorkshop:
         )
         image = self._render(init_image=init_image)[0]
         image = StableImage(
-            prompt=str(self.prompt), settings=self.settings, image=image
+            prompt=str(self.prompt),
+            settings=self.settings,
+            image=image,
+            init=self.generated[idx],
         )
         if self._draft:
             self.drafted.append(image)
@@ -561,7 +571,7 @@ class StableWorkshop:
         if self._draft:
             raise RuntimeError("You cannot upscale while in draft mode.")
 
-        init_image = self.generated[idx]
+        init_image = self.generated[idx].image
         if render_more:
             image = gobig(
                 init_image,
@@ -595,7 +605,7 @@ class StableWorkshop:
         Args:
             idxs (int or list of int): indices to search across
             seeds (int or list of int): seeds to search across,
-                default: [271, 314159, 42, 57721, 60221023]
+                default: `SEEDS`
             func (callable): function e.g. `tune` or `refine`,
                 default: `tune`
             hallucinate (bool): whether or not to hallucinate in addition
@@ -610,7 +620,7 @@ class StableWorkshop:
             idxs = [idxs]
         if isinstance(seeds, int):
             seeds = [seeds]
-        seeds = seeds or SEEDS[1:]
+        seeds = seeds or SEEDS
         func = func or self.tune
         for seed in seeds:
             self.settings.seed = seed

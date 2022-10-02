@@ -55,11 +55,11 @@ class StablePrompt:
         hallucinate: use GPT-3 to improve your prompt
         painting: set defaults to emulate painting
         photo: set defaults to emulate photography
-        render: set defaults to emulate 3d graphics
-        rainbow: set defaults to be very colorful
         manga: set defaults to emulate anime
-        scifi: set defaults to emulate science fiction movies
         portrait: set defaults to emulate a painted portrait
+        rainbow: set defaults to be very colorful
+        render: set defaults to emulate 3d graphics
+        scifi: set defaults to emulate science fiction movies
         wildlife: set defaults to emulate wildlife photography
     """
 
@@ -141,7 +141,7 @@ class StablePrompt:
             **kwargs,
         )
         choices = [c["text"].strip() for c in result["choices"]]
-        choices.insert(0, self.subject)
+        choices.append(subject)
         self.subject = _select_result(choices)
 
     def painting(self):
@@ -168,40 +168,12 @@ class StablePrompt:
             "ambient occlusion",
         ]
 
-    def render(self):
-        """Set attributes for 3d rendering."""
-        self.subject = "a robot"
-        self.details = ["toonami", "shiny"]
-        self.medium = "a computer rendering"
-        self.artists = ["Pixar"]
-        self.trending = "cg society"
-        self.movement = "plasticien"
-        self.flavors = ["quantum wavetracing", "vray tracing", "unreal engine"]
-
-    def rainbow(self):
-        """Set attributes for psychadelic colors."""
-        self.painting()
-        self.artists = ["Lisa Frank", "Thomas Kinkade", "Georgia O'Keefe"]
-        self.trending = "behance"
-        self.movement = "psychadelic art"
-        self.flavors = ["kaliedoscope", "vaporwave", "maximalist"]
-
     def manga(self):
         """Set attributes for manga/anime."""
         self.painting()
         self.artists = ["Studio Ghibli", "Hayao Mikazaki"]
         self.movement = ""
         self.flavors = ["anime aesthetic"]
-
-    def scifi(self):
-        """Set attributes for science fiction scenes."""
-        self.subject = "a cityscape"
-        self.details = ["rain", "reflections"]
-        self.medium = "a movie still"
-        self.artists = ["Ridley Scott", "Simon Stalenhag"]
-        self.trending = "cg society"
-        self.movement = "retrofuturism"
-        self.flavors = ["dystopian art, sci-fi", "futuristic"]
 
     def portrait(self):
         """Set attributes for a painterly portrait."""
@@ -222,6 +194,34 @@ class StablePrompt:
             "studio portrait",
             "oil on canvas",
         ]
+
+    def rainbow(self):
+        """Set attributes for psychadelic colors."""
+        self.painting()
+        self.artists = ["Lisa Frank", "Thomas Kinkade", "Georgia O'Keefe"]
+        self.trending = "behance"
+        self.movement = "psychadelic art"
+        self.flavors = ["kaliedoscope", "vaporwave", "maximalist"]
+
+    def render(self):
+        """Set attributes for 3d rendering."""
+        self.subject = "a robot"
+        self.details = ["toonami", "shiny"]
+        self.medium = "a computer rendering"
+        self.artists = ["Pixar"]
+        self.trending = "cg society"
+        self.movement = "plasticien"
+        self.flavors = ["quantum wavetracing", "vray tracing", "unreal engine"]
+
+    def scifi(self):
+        """Set attributes for science fiction scenes."""
+        self.subject = "a cityscape"
+        self.details = ["rain", "reflections"]
+        self.medium = "a movie still"
+        self.artists = ["Ridley Scott", "Simon Stalenhag"]
+        self.trending = "cg society"
+        self.movement = "retrofuturism"
+        self.flavors = ["dystopian art, sci-fi", "futuristic"]
 
     def wildlife(self):
         """Set attributes for wildlife photography."""
