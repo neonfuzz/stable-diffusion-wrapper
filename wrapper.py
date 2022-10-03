@@ -12,7 +12,6 @@ Functions:
 
 
 # bug-fix and easy
-# TODO: change "func" in grid_search to "mode"
 # TODO: option to skip same seed during grid search
 # TODO: when upscaling images, make sure the metadata is traceable
 # TODO: when loading images, set the hash to the loaded one?
@@ -601,40 +600,53 @@ class StableWorkshop:
 
     def grid_search(
         self,
-        idxs: Union[Iterable[int], int] = None,
         seeds: Union[Iterable[int], int] = None,
-        func: Callable = None,
-        hallucinate: bool = False,
+        idxs: Union[Iterable[int], int] = None,
+        mode: str = "hallucinate",
+        skip_same: bool = True,
         **kwargs,
     ):
         """Generate across multiple seeds and indices.
 
         Args:
-            idxs (int or list of int): indices to search across
             seeds (int or list of int): seeds to search across,
                 default: `SEEDS`
-            func (callable): function e.g. `tune` or `refine`,
-                default: `tune`
-            hallucinate (bool): whether or not to hallucinate in addition
-                to `func`, default: False
+            idxs (int or list of int): indices to search across
+                (for "tune" and "refine")
+            mode (str): one of "tune", "refine", or "hallucinate";
+                default: "hallucinate"
+            skip_same (bool): skip init images with the same seed
+                (for "tune" and "refine"), default: True
 
             Additional kwargs are used at render time for this call only.
 
         Any generated images will be added to `generated`.
         """
+        if mode not in ("tune", "refine", "hallucinate"):
+            raise ValueError(
+                "`mode` must be one of 'tune', 'refine', or 'hallucinate', "
+                f"not {mode}"
+            )
         start_seed = self.settings.seed
         if isinstance(idxs, int):
             idxs = [idxs]
         if isinstance(seeds, int):
             seeds = [seeds]
         seeds = seeds or SEEDS
-        func = func or self.tune
         for seed in seeds:
             self.settings.seed = seed
-            if hallucinate:
+            if mode == "hallucinate":
                 self.hallucinate(**kwargs)
-            for idx in idxs:
-                func(idx, **kwargs)
+            elif mode == "tune":
+                for idx in idxs:
+                    if skip_same and self.drafted[idx].settings.seed == seed:
+                        continue
+                    self.tune(idx, **kwargs)
+            elif mode == "refine":
+                for idx in idxs:
+                    if skip_same and self.generated[idx].settings.seed == seed:
+                        continue
+                    self.refine(idx, **kwargs)
         self.settings.seed = start_seed
 
     def save(self):
