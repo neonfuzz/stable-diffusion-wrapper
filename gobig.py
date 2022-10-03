@@ -29,7 +29,9 @@ SOFTWARE.
 """
 
 
+import gc
 from typing import List, Tuple
+from warnings import warn
 
 # pylint: disable=import-error, no-name-in-module
 from basicsr.archs.rrdbnet_arch import RRDBNet
@@ -39,6 +41,37 @@ import numpy as np
 from PIL import Image, ImageDraw
 from realesrgan import RealESRGANer
 from torch import autocast, cuda
+
+
+ESRGAN_MODELS = dict(
+    rdb=RRDBNet(
+        num_in_ch=3,
+        num_out_ch=3,
+        num_feat=64,
+        num_block=23,
+        num_grow_ch=32,
+        scale=4,
+    ),
+)
+ESRGAN_MODELS["upsampler"] = RealESRGANer(
+    scale=4,
+    model_path="/home/addie/opt/Real-ESRGAN/experiments/pretrained_models/"
+    "RealESRGAN_x4plus.pth",
+    model=ESRGAN_MODELS["rdb"],
+    tile=512,
+    tile_pad=128,
+    pre_pad=0,
+    half=False,
+    gpu_id=0,
+)
+ESRGAN_MODELS["face_enhancer"] = GFPGANer(
+    model_path="https://github.com/TencentARC/GFPGAN/releases/download/"
+    "v1.3.0/GFPGANv1.3.pth",
+    upscale=2,
+    arch="clean",
+    channel_multiplier=2,
+    bg_upsampler=ESRGAN_MODELS["upsampler"],
+)
 
 
 def upscale(
@@ -54,35 +87,6 @@ def upscale(
     Returns:
         Image.Image: upscaled image
     """
-    esrgan_models = dict(
-        rdb=RRDBNet(
-            num_in_ch=3,
-            num_out_ch=3,
-            num_feat=64,
-            num_block=23,
-            num_grow_ch=32,
-            scale=4,
-        ),
-    )
-    esrgan_models["upsampler"] = RealESRGANer(
-        scale=4,
-        model_path="/home/addie/opt/Real-ESRGAN/experiments/pretrained_models/"
-        "RealESRGAN_x4plus.pth",
-        model=esrgan_models["rdb"],
-        tile=100,
-        tile_pad=10,
-        pre_pad=0,
-        half=False,
-        gpu_id=0,
-    )
-    esrgan_models["face_enhancer"] = GFPGANer(
-        model_path="https://github.com/TencentARC/GFPGAN/releases/download/"
-        "v1.3.0/GFPGANv1.3.pth",
-        upscale=scale,
-        arch="clean",
-        channel_multiplier=2,
-        bg_upsampler=esrgan_models["upsampler"],
-    )
 
     to_pil = False
     if isinstance(img, Image.Image):
@@ -90,19 +94,26 @@ def upscale(
         img = np.array(img)[..., ::-1]
 
     if face_enhance:
-        face_enhancer = esrgan_models["face_enhancer"]
+        face_enhancer = ESRGAN_MODELS["face_enhancer"]
+        face_enhancer.upscale = scale
+        face_enhancer.bg_upsampler.model.to("cuda:0")
+        face_enhancer.gfpgan.to("cuda:0")
         _, _, output = face_enhancer.enhance(
             img, has_aligned=False, only_center_face=False, paste_back=True
         )
+        face_enhancer.bg_upsampler.model.to("cpu")
+        face_enhancer.gfpgan.to("cpu")
     else:
-        upsampler = esrgan_models["upsampler"]
+        upsampler = ESRGAN_MODELS["upsampler"]
+        upsampler.model.to("cuda:0")
         output, _ = upsampler.enhance(img, outscale=scale)
-
-    del esrgan_models
+        upsampler.model.to("cpu")
+    gc.collect()
     cuda.empty_cache()
 
     if to_pil is True:
         return Image.fromarray(output[..., ::-1])
+
     return output
 
 
@@ -270,19 +281,28 @@ def gobig(
     cuda.empty_cache()
     img = upscale(img, face_enhance=face_enhance)
     pipe.to("cuda:0")
+    cuda.empty_cache()
 
     better_slices = []
     slices, _ = _grid_slice(img, overlap, piece_size)
     # TODO: tqdm that has a macro view of tasks
-    for (chunk, coord_x, coord_y) in slices:
-        with autocast("cuda"):
-            result = pipe(
-                prompt,
-                init_image=chunk,
-                strength=strength,
-                guidance_scale=cfg,
-                num_inference_steps=diffuse_iters,
-            )["images"][0]
-        better_slices.append((result, coord_x, coord_y))
+    try:
+        for (chunk, coord_x, coord_y) in slices:
+            with autocast("cuda"):
+                result = pipe(
+                    prompt,
+                    init_image=chunk,
+                    strength=strength,
+                    guidance_scale=cfg,
+                    num_inference_steps=diffuse_iters,
+                )["images"][0]
+            better_slices.append((result, coord_x, coord_y))
+    except RuntimeError as err:
+        warn(f"Full upscaling did not complete.\n\n{err}")
+        gc.collect()
+        cuda.empty_cache()
+        return img
 
+    gc.collect()
+    cuda.empty_cache()
     return _stitch(img, better_slices, overlap, piece_size)

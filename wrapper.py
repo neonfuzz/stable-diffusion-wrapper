@@ -11,7 +11,6 @@ Functions:
 """
 
 # TODO: memory-saving tricks lead to multiple images generated per batch?
-# TODO: garbage collection on the gpu
 # TODO: average images in latent space
 # TODO: "working" image, which can be set or loaded from file
 # TODO: interactive inpainting?
@@ -20,6 +19,7 @@ Functions:
 
 import os
 from copy import copy
+import gc
 from math import sqrt, ceil
 from typing import Callable, Iterable, Union
 import warnings
@@ -35,7 +35,7 @@ from diffusers.training_utils import set_seed
 from PIL import Image
 from transformers import CLIPTextModel, CLIPTokenizer
 import torch
-from torch import autocast
+from torch import autocast, cuda
 from torchvision import transforms
 
 from gobig import upscale, gobig
@@ -347,6 +347,8 @@ class StableWorkshop:
                 guidance_scale=self.settings.cfg,
                 num_inference_steps=self.settings.iters,
             )
+        gc.collect()
+        cuda.empty_cache()
         return result["images"]
 
     def _update_settings(self, **kwargs):
