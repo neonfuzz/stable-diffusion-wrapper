@@ -31,6 +31,7 @@ SOFTWARE.
 
 import gc
 from typing import List, Tuple
+from tqdm import tqdm
 from warnings import warn
 
 # pylint: disable=import-error, no-name-in-module
@@ -240,14 +241,14 @@ def _stitch(
         chunk.putalpha(alpha)
         img.alpha_composite(chunk, (xpos, ypos))
 
-    return img
+    return img.convert("RGB")
 
 
 def gobig(
     img: Image.Image,
     prompt: str,
     pipe: StableDiffusionImg2ImgPipeline,
-    **kwargs
+    **kwargs,
 ) -> Image.Image:
     """Upscale an image with Diffusers.
 
@@ -285,9 +286,10 @@ def gobig(
 
     better_slices = []
     slices, _ = _grid_slice(img, overlap, piece_size)
-    # TODO: tqdm that has a macro view of tasks
     try:
-        for (chunk, coord_x, coord_y) in slices:
+        for (chunk, coord_x, coord_y) in tqdm(
+            slices, desc="batch progress", position=1
+        ):
             with autocast("cuda"):
                 result = pipe(
                     prompt,

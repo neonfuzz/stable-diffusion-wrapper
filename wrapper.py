@@ -10,13 +10,19 @@ Functions:
     load_learned_embed_in_clip - load a learned embedding
 """
 
-# TODO: memory-saving tricks lead to multiple images generated per batch?
+
+# bug-fix and easy
+# TODO: change "func" in grid_search to "mode"
+# TODO: option to skip same seed during grid search
+# TODO: when upscaling images, make sure the metadata is traceable
+# TODO: when loading images, set the hash to the loaded one?
+
+# long-term
 # TODO: average images in latent space
 # TODO: "working" image, which can be set or loaded from file
 # TODO: interactive inpainting?
 
-# pylint: disable=no-member
-
+# pylint: disable=no-member, no-name-in-module
 import os
 from copy import copy
 import gc
@@ -25,7 +31,6 @@ from typing import Callable, Iterable, Union
 import warnings
 import yaml
 
-# pylint: disable=no-name-in-module
 from diffusers import (
     LMSDiscreteScheduler,
     PNDMScheduler,
@@ -262,12 +267,12 @@ class StableWorkshop:
     Methods:
         load_token - load a custom-trained token
         reset - reset workshop to default values
-        draft_mode - enable drafting
+        draft_on - enable drafting
         draft_off - disable drafting
         show - display generated images
         show_drafted - display drafted images
         hallucinate - generate an image from scratch
-        tune - generate an image using a `draft_mode` image as a template
+        tune - generate an image using a `draft_on` image as a template
         refine - generate an image using a `generated` image as a template
         upscale - make a generated image larger, with science
         grid_search - search across multiple idxs and seeds
@@ -383,7 +388,7 @@ class StableWorkshop:
         self.generated = []
         self.drafted = []
 
-    def draft_mode(self, iters: int = 10):
+    def draft_on(self, iters: int = 10):
         """Enable draft mode.
 
         When draft mode is enabled, the LMS (rather than PNDM) noise scheduler
@@ -463,7 +468,7 @@ class StableWorkshop:
             image.show()
 
     def tune(self, idx: int, show: bool = True, **kwargs):
-        """Tune a `draft_mode` image into a (hopefully) better image.
+        """Tune a `draft_on` image into a (hopefully) better image.
 
         Args:
             idx (int): index of `drafted`
@@ -476,7 +481,7 @@ class StableWorkshop:
         """
         if not self.drafted:
             raise RuntimeError(
-                "Draft something with `draft_mode` before tuning."
+                "Draft something with `draft_on` before tuning."
             )
         self._update_settings(**kwargs)
         if self.drafted[idx].settings.seed == self.settings.seed:
