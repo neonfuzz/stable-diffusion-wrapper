@@ -144,6 +144,15 @@ class StablePrompt:
         choices.append(subject)
         self.subject = _select_result(choices)
 
+    def zero(self):
+        self.subject = ""
+        self.details = []
+        self.medium = ""
+        self.artists = []
+        self.trending = ""
+        self.movement = ""
+        self.flavors = []
+
     def painting(self):
         """Set attributes for a painting."""
         self.subject = "a fantasy landscape"
