@@ -4,7 +4,6 @@ Classes:
     StableWorkshop - use SD in an interactive fashion
 
 Functions:
-    show_image_grid - display images in a grid
     load_learned_embed_in_clip - load a learned embedding
 """
 
@@ -22,7 +21,6 @@ Functions:
 # pylint: disable=no-member, no-name-in-module
 from copy import copy
 import gc
-from math import sqrt, ceil
 from typing import Iterable, Union
 import warnings
 
@@ -39,24 +37,9 @@ from torch import autocast, cuda
 from torchvision import transforms
 
 from gobig import upscale, gobig
-from image import StableImage
+from image import StableImage, StableGallery, show_image_grid
 from prompt import StablePrompt
 from settings import SEEDS, StableSettings
-
-
-def show_image_grid(imgs, rows=None, cols=None):
-    """Display multiple images at once, in a grid format."""
-    if isinstance(imgs[0], StableImage):
-        imgs = [i.image for i in imgs]
-    rows = rows or int(sqrt(len(imgs)))
-    cols = cols or int(ceil(len(imgs) / rows))
-    width, height = imgs[0].size
-    grid = Image.new("RGB", size=(cols * width, rows * height))
-
-    for i, img in enumerate(imgs):
-        grid.paste(img, box=(i % cols * width, i // cols * height))
-
-    grid.show()
 
 
 def load_learned_embed_in_clip(
@@ -138,8 +121,8 @@ class StableWorkshop:
         self._init_model(version)
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)
-        self.generated = []
-        self.drafted = []
+        self.generated = StableGallery()
+        self.drafted = StableGallery()
         self._draft = False
         for key in self.prompt.dict:
             fget = lambda self, k=key: self.prompt[k]
@@ -283,12 +266,12 @@ class StableWorkshop:
         self.settings.iters = iters
 
     def show(self, **kwargs):
-        """Show all generated images in a grid."""
-        show_image_grid([gn.image for gn in self.generated], **kwargs)
+        """Show all generated images in a grid, with index labels."""
+        self.generated.show(**kwargs)
 
     def show_drafted(self, **kwargs):
-        """Show drafted images in a grid."""
-        show_image_grid([bs.image for bs in self.drafted], **kwargs)
+        """Show drafted images in a grid, with index labels."""
+        self.drafted.show(**kwargs)
 
     def hallucinate(self, show: bool = True, **kwargs):
         """Generate an image from scratch.

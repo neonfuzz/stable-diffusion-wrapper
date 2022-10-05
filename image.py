@@ -3,17 +3,83 @@ Handle image storage for interactive use of Stable Diffusion (SD).
 
 Classes:
     StableImage - contain SD image and its generation information
+    StableGallery - contain multiple StableImages
+
+Functions:
+    show_image_grid = display images in a grid
 """
 
 
 from copy import copy
+from math import ceil, sqrt
 import os
 import yaml
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from prompt import StablePrompt
 from settings import StableSettings
+
+
+_FONT = ImageFont.truetype("Sarabun-Medium.ttf", size=40)
+
+
+def _add_label(img, label):
+    img = copy(img)
+    draw = ImageDraw.Draw(img)
+    draw.text((9, 9), str(label), fill=(0, 0, 0), font=_FONT)
+    draw.text((10, 10), str(label), fill=(255, 255, 255), font=_FONT)
+    return img
+
+
+def show_image_grid(imgs, rows=None, cols=None, labels=None):
+    """Display multiple images at once, in a grid format."""
+    if isinstance(imgs[0], StableImage):
+        imgs = [i.image for i in imgs]
+    if labels:
+        imgs = [_add_label(im, lab) for im, lab in zip(imgs, labels)]
+    rows = rows or int(sqrt(len(imgs)))
+    cols = cols or int(ceil(len(imgs) / rows))
+    width, height = imgs[0].size
+    grid = Image.new("RGB", size=(cols * width, rows * height))
+
+    for i, img in enumerate(imgs):
+        grid.paste(img, box=(i % cols * width, i // cols * height))
+
+    grid.show()
+
+
+class StableGallery(list):
+    """Contain a gallery of `StableImage`s.
+
+    Subclassed from `list`.
+
+    Additional behavior:
+        Can be indexed with a tuple or a list
+
+    Additional methods:
+        show - display the images to screen
+    """
+
+    def __getitem__(self, idx):
+        if isinstance(idx, slice):
+            return StableGallery(super().__getitem__(idx))
+        if isinstance(idx, (tuple, list)):
+            return StableGallery([self.__getitem__(i) for i in idx])
+        return super().__getitem__(idx)
+
+    def show(self, label: bool = True, **kwargs):
+        """Show the gallery.
+
+        Args:
+            label (bool): include automatic image labels, default=True
+            labels (list): manually add labels; overrides `label` if passed
+
+        Additional kwargs are passed to `show_image_grid`.
+        """
+        labels = range(len(self)) if label else None
+        kwargs["labels"] = kwargs.pop("labels", labels)
+        show_image_grid(self, **kwargs)
 
 
 class StableImage:
