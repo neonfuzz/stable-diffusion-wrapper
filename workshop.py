@@ -292,7 +292,7 @@ class StableWorkshop:
         self.settings.strength = 1.0
         image = self._render()[0]
         image = StableImage(
-            prompt=str(self.prompt), settings=self.settings, image=image
+            prompt=self.prompt, settings=self.settings, image=image
         )
         if self._draft:
             self.drafted.append(image)
@@ -329,7 +329,7 @@ class StableWorkshop:
         )
         image = self._render(init_image=init_image)[0]
         image = StableImage(
-            prompt=str(self.prompt),
+            prompt=self.prompt,
             settings=self.settings,
             image=image,
             init=self.drafted[idx],
@@ -370,7 +370,7 @@ class StableWorkshop:
         )
         image = self._render(init_image=init_image)[0]
         image = StableImage(
-            prompt=str(self.prompt),
+            prompt=self.prompt,
             settings=self.settings,
             image=image,
             init=self.generated[idx],
