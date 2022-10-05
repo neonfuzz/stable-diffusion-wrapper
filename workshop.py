@@ -1,8 +1,6 @@
 """Tools to make interactive use of Stable Diffusion (SD) easier.
 
 Classes:
-    StableSettings - contain settings for SD
-    StableImage - contain SD image and its generation information
     StableWorkshop - use SD in an interactive fashion
 
 Functions:
@@ -22,13 +20,11 @@ Functions:
 # TODO: interactive inpainting?
 
 # pylint: disable=no-member, no-name-in-module
-import os
 from copy import copy
 import gc
 from math import sqrt, ceil
-from typing import Callable, Iterable, Union
+from typing import Iterable, Union
 import warnings
-import yaml
 
 from diffusers import (
     LMSDiscreteScheduler,
@@ -43,10 +39,9 @@ from torch import autocast, cuda
 from torchvision import transforms
 
 from gobig import upscale, gobig
+from image import StableImage
 from prompt import StablePrompt
-
-
-SEEDS = [1337, 271, 314159, 41245, 59017, 61023]
+from settings import SEEDS, StableSettings
 
 
 def show_image_grid(imgs, rows=None, cols=None):
@@ -107,148 +102,6 @@ def load_learned_embed_in_clip(
 
     # log to screen
     print(f"Added token '{token}' to the CLIP model.")
-
-
-class StableSettings:
-    """Container for holding stable diffusion settings.
-
-    Instance Attributes:
-        height (int): image height in pixels, default=512
-        width (int): image width in pixels, default=512
-        seed (int): random seed for generating images, default=1337
-        iters (int): number of diffusion steps for generation, default=50
-        cfg (float): classifier free guidance, default=6.0
-        strength (float): maintain original image, default=1.0
-        dict (dict): represent setting as a dictionary
-
-    Note that `height` and `width` must be multiples of 8. Weird results occur
-    if both `height` and `width` are over 512. It is recommended to keep one
-    value at 512 and vary the other.
-
-    Guidelines for `cfg`:
-        Classifier free guidance controls how closely the AI will match the
-        image output to your text prompt.
-
-        2-5: Allow the AI to hallucinate.
-        6-10: Dynamic balance between human and AI.
-        11-15: Strong inclusion of prompt. Only use for well-crafted prompts.
-        16-20: Force prompt. Not recommended.
-
-    Guidelines for `strength`:
-        Strength controls how closely the AI will match the image output to the
-        image input (as with tuning). A strength of 0.0 maintains the original
-        image. 1.0 completely changes the image.
-
-        0.0-0.5: Stay very close to the original input. Not recommended.
-        0.6-0.7: Keep structure from the input, but change details.
-        0.8-0.9: Change many details and some structure from the input.
-        1.0: Use input as a jumping off point, but allow anything to change.
-    """
-
-    def __init__(self, **kwargs):
-        self.height = kwargs.pop("height", 512)
-        self.width = kwargs.pop("width", 512)
-        self.seed = kwargs.pop("seed", SEEDS[0])
-        self.iters = kwargs.pop("iters", 50)
-        self.cfg = kwargs.pop("cfg", 6.0)
-        self.strength = kwargs.pop("strength", 1.0)
-
-    def __repr__(self):
-        return str(self.__dict__)
-
-    def __getitem__(self, idx):
-        return self.__dict__[idx]
-
-    def __setitem__(self, idx, value):
-        self.__dict__[idx] = value
-
-    @property
-    def dict(self):
-        """Access settings as a dictionary."""
-        return self.__dict__
-
-
-class StableImage:
-    """Contain a generated image and the information used to generate it.
-
-    Read-Only Instance Attributes:
-        prompt (StablePrompt): the prompt used to generate the image
-        settings (StableSettings): the settings used to generate the image
-        init (StableImage): the seed image, if it exists
-        hash (str): a unique hash for identifying the image
-
-    Methods:
-        show: display the image
-        save: save the image and settings to file
-        open: open an image from file
-    """
-
-    def __init__(
-        self,
-        prompt: StablePrompt,
-        settings: StableSettings,
-        image: Image,
-        init=None,
-    ):
-        self._prompt = copy(prompt)
-        self._settings = copy(settings) or StableSettings()
-        self._image = copy(image)
-        self._init = init
-
-    def __repr__(self):
-        return f"StableImage: {self.hash}"
-
-    def show(self):
-        """Show the image."""
-        self._image.show()
-
-    @classmethod
-    def open(cls, fpath: str):
-        """Open an image from file.
-
-        Args:
-            fpath (str): path to file
-        """
-        return StableImage(
-            prompt=fpath, settings=None, image=Image.open(fpath)
-        )
-
-    def save(self):
-        """Save the image and its associated settings.
-
-        Image saves to generated/`hash`.png.
-        Settings and prompt append to generated/logs.yaml.
-        If `init` is not none, `init` saves as well.
-        """
-        try:
-            os.mkdir("generated")
-        except FileExistsError:
-            pass
-
-        self.image.save(f"generated/{self.hash}.png")
-        with open("generated/logs.yaml", "a", encoding="utf-8") as logfile:
-            logfile.write(
-                yaml.dump(
-                    {
-                        self.hash: {
-                            "prompt": str(self.prompt),
-                            "settings": self.settings,
-                            "init": str(self.init),
-                        }
-                    }
-                )
-            )
-
-        if self.init:
-            self.init.save()
-
-    prompt = property(fget=lambda self: self._prompt)
-    settings = property(fget=lambda self: self._settings)
-    image = property(fget=lambda self: self._image)
-    init = property(fget=lambda self: self._init)
-    hash = property(
-        fget=lambda self: f"{hash(self.image.tobytes()):x}".strip("-")
-    )
 
 
 class StableWorkshop:
