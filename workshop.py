@@ -415,6 +415,7 @@ class StableWorkshop:
 
         init_image = self.generated[idx].image
         if render_more:
+            ws.draft_off()
             image = gobig(
                 init_image,
                 prompt=str(self.prompt),
@@ -424,9 +425,14 @@ class StableWorkshop:
             )
         else:
             image = upscale(init_image, face_enhance=face_enhance, **kwargs)
+        settings = copy(self.settings)
+        settings.width, settings.height = image.size
+        settings.iters = kwargs.get("diffuse_iters", 50)
+        settings.cfg = kwargs.get("cfg", 6.0)
+        settings.strength = kwargs.get("strength", 0.3)
         image = StableImage(
-            prompt=str(self.prompt),
-            settings=self.settings,
+            prompt=self.prompt,
+            settings=settings,
             image=image,
             init=self.generated[idx],
         )

@@ -266,7 +266,7 @@ def gobig(
             0 is no change, 1 is complete change; default=0.3
         cfg (float): classifier free guidance, default=6.0
         diffuse_iters (int): number of diffusion iterations, default=50
-        piece_size (Tuple[int]): size of each image chunk, default=img.size
+        piece_size (Tuple[int]): size of each image chunk, default=(512, 512)
 
     Returns:
         Image.Image: upscaled image
@@ -276,7 +276,7 @@ def gobig(
     strength = kwargs.pop("strength", 0.3)
     cfg = kwargs.pop("cfg", 6.0)
     diffuse_iters = kwargs.pop("diffuse_iters", 50)
-    piece_size = kwargs.pop("piece_size", img.size)
+    piece_size = kwargs.pop("piece_size", (512, 512))
 
     pipe.to("cpu")
     cuda.empty_cache()
@@ -299,12 +299,12 @@ def gobig(
                     num_inference_steps=diffuse_iters,
                 )["images"][0]
             better_slices.append((result, coord_x, coord_y))
+            gc.collect()
+            cuda.empty_cache()
     except RuntimeError as err:
         warn(f"Full upscaling did not complete.\n\n{err}")
         gc.collect()
         cuda.empty_cache()
         return img
 
-    gc.collect()
-    cuda.empty_cache()
     return _stitch(img, better_slices, overlap, piece_size)
