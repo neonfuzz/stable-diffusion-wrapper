@@ -288,7 +288,7 @@ def gobig(
     slices, _ = _grid_slice(img, overlap, piece_size)
     try:
         for (chunk, coord_x, coord_y) in tqdm(
-            slices, desc="batch progress", position=1
+            slices, desc="batch progress", position=0
         ):
             with autocast("cuda"):
                 result = pipe(

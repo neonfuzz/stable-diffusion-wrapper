@@ -11,7 +11,6 @@ Functions:
 # bug-fix and easy
 # TODO: clean up "undraft"
 # TODO: when upscaling images, make sure the metadata is traceable
-# TODO: tqdm in "render_loop"
 # TODO: show_all in "render_loop"
 # TODO: option for N random seeds in "render_loop"
 # TODO: save() on gallery
@@ -41,6 +40,7 @@ from transformers import CLIPTextModel, CLIPTokenizer
 import torch
 from torch import autocast, cuda
 from torchvision import transforms
+from tqdm import tqdm
 
 from gobig import upscale, gobig
 from image import StableImage, StableGallery
@@ -158,6 +158,7 @@ class StableWorkshop:
             use_auth_token=True,
             **kwargs,
         )
+        self._pipe.set_progress_bar_config(leave=False, position=1)
         self._pipe = self._pipe.to("cuda")
         self._pipe.enable_attention_slicing()
 
@@ -216,6 +217,12 @@ class StableWorkshop:
         elif inits is None:
             inits = [None]
 
+        pbar = tqdm(
+            total=len(inits) * len(seeds),
+            desc="batch progress",
+            position=0,
+            leave=True,
+        )
         for seed in seeds:
             self.settings.seed = seed
             for init in inits:
@@ -224,6 +231,7 @@ class StableWorkshop:
                     and init.settings.seed == self.settings.seed
                 ):
                     if skip_same:
+                        pbar.update(1)
                         continue
                     warnings.warn(
                         "The current seed and the seed used to generate this "
@@ -243,7 +251,9 @@ class StableWorkshop:
                     self.generated.append(image)
                 if show is True:
                     image.show()
+                pbar.update(1)
 
+        pbar.close()
         self.settings.seed = seed_
 
     def _update_settings(self, **kwargs):
