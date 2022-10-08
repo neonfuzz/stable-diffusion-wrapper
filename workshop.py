@@ -5,15 +5,14 @@ Classes:
 
 Functions:
     load_learned_embed_in_clip - load a learned embedding
+    make_seeds - generate random seeds
 """
 
 
 # bug-fix and easy
 # TODO: clean up "undraft"
 # TODO: when upscaling images, make sure the metadata is traceable
-# TODO: show_all in "render_loop"
-# TODO: option for N random seeds in "render_loop"
-# TODO: save() on gallery
+# TODO: update notebook
 
 # long-term
 # TODO: don't set instance parameters for method calls
@@ -35,6 +34,7 @@ from diffusers import (
     StableDiffusionImg2ImgPipeline,
 )
 from diffusers.training_utils import set_seed
+import numpy as np
 from PIL import Image
 from transformers import CLIPTextModel, CLIPTokenizer
 import torch
@@ -91,6 +91,12 @@ def load_learned_embed_in_clip(
 
     # log to screen
     print(f"Added token '{token}' to the CLIP model.")
+
+
+def make_seeds(n: int = 6):
+    # pylint: disable=invalid-name
+    """Make `n` random seeds."""
+    return list(np.random.randint(0, 10000000, n))
 
 
 class StableWorkshop:
