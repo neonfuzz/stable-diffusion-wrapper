@@ -9,11 +9,18 @@ Functions:
 
 
 # bug-fix and easy
-# TODO: option to skip same seed during grid search
+# TODO: clean up "undraft"
 # TODO: when upscaling images, make sure the metadata is traceable
-# TODO: when loading images, set the hash to the loaded one?
+# TODO: merge `tune`/`refine` behind the scenes
+# TODO: tqdm in "grid_search"
+# TODO: show_all in "grid_search"
+# TODO: option for N random seeds in "grid_search"
+# TODO: save() on gallery
 
 # long-term
+# TODO: don't set instance parameters for method calls
+#       need a better way to handle "global" and method settings
+# TODO: when loading images, set the hash to the loaded one?
 # TODO: average images in latent space
 # TODO: "working" image, which can be set or loaded from file
 # TODO: interactive inpainting?
@@ -515,5 +522,4 @@ class StableWorkshop:
 
     def save(self):
         """Save all `generated` images. See `StableImage.save`."""
-        for image in self.generated:
-            image.save()
+        self.generated.save()

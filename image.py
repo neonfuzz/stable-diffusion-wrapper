@@ -81,6 +81,11 @@ class StableGallery(list):
         kwargs["labels"] = kwargs.pop("labels", labels)
         show_image_grid(self, **kwargs)
 
+    def save(self):
+        """Save all images in the gallery. See `StableImage.save`."""
+        for image in self:
+            image.save()
+
 
 class StableImage:
     """Contain a generated image and the information used to generate it.
