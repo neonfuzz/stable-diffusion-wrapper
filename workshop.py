@@ -11,10 +11,9 @@ Functions:
 # bug-fix and easy
 # TODO: clean up "undraft"
 # TODO: when upscaling images, make sure the metadata is traceable
-# TODO: merge `tune`/`refine` behind the scenes
-# TODO: tqdm in "grid_search"
-# TODO: show_all in "grid_search"
-# TODO: option for N random seeds in "grid_search"
+# TODO: tqdm in "render_loop"
+# TODO: show_all in "render_loop"
+# TODO: option for N random seeds in "render_loop"
 # TODO: save() on gallery
 
 # long-term
@@ -117,7 +116,6 @@ class StableWorkshop:
         tune - generate an image using a `draft_on` image as a template
         refine - generate an image using a `generated` image as a template
         upscale - make a generated image larger, with science
-        grid_search - search across multiple idxs and seeds
         save - save all `generated` images
 
     When indexed:
@@ -186,6 +184,8 @@ class StableWorkshop:
         prompt = [str(self.prompt)] * num
         if init_image is None:
             init_image = self._init_image()
+        elif isinstance(init_image, StableImage):
+            init_image = init_image.image
         with autocast("cuda"):
             result = self._pipe(
                 prompt,
@@ -197,6 +197,54 @@ class StableWorkshop:
         gc.collect()
         cuda.empty_cache()
         return result["images"]
+
+    def _render_loop(
+        self,
+        inits: Union[StableImage, StableGallery] = None,
+        seeds: Union[int, Iterable] = None,
+        skip_same: bool = True,
+        show: bool = True,
+        **kwargs,
+    ):
+        seed_ = copy(self.settings.seed)
+        self._update_settings(**kwargs)
+        if isinstance(seeds, int):
+            seeds = [seeds]
+        seeds = seeds or [self.seed]
+        if isinstance(inits, StableImage):
+            inits = [inits]
+        elif inits is None:
+            inits = [None]
+
+        for seed in seeds:
+            self.settings.seed = seed
+            for init in inits:
+                if (
+                    init is not None
+                    and init.settings.seed == self.settings.seed
+                ):
+                    if skip_same:
+                        continue
+                    warnings.warn(
+                        "The current seed and the seed used to generate this "
+                        "image are the same. This can lead to undesired "
+                        'effects, like "burn-in"'
+                    )
+                image = self._render(init_image=init)[0]
+                image = StableImage(
+                    prompt=self.prompt,
+                    settings=self.settings,
+                    image=image,
+                    init=init,
+                )
+                if self._draft:
+                    self.drafted.append(image)
+                else:
+                    self.generated.append(image)
+                if show is True:
+                    image.show()
+
+        self.settings.seed = seed_
 
     def _update_settings(self, **kwargs):
         for key, value in kwargs.items():
@@ -300,28 +348,9 @@ class StableWorkshop:
         depending on the use of `draft_on/draft_off`.
         """
         strength = copy(self.settings.strength)
-        seed = copy(self.settings.seed)
-        self._update_settings(**kwargs)
         self.settings.strength = 1.0
-        seeds = seeds or seed
-        if isinstance(seeds, int):
-            seeds = [seeds]
-
-        for seed_ in seeds:
-            self.settings.seed = seed_
-            image = self._render()[0]
-            image = StableImage(
-                prompt=self.prompt, settings=self.settings, image=image
-            )
-            if self._draft:
-                self.drafted.append(image)
-            else:
-                self.generated.append(image)
-            if show is True:
-                image.show()
-
+        self._render_loop(inits=None, seeds=seeds, show=show, **kwargs)
         self.settings.strength = strength
-        self.settings.seed = seed
 
     def tune(
         self,
@@ -351,43 +380,11 @@ class StableWorkshop:
             raise RuntimeError(
                 "Draft something with `draft_on` before tuning."
             )
-        self._update_settings(**kwargs)
-        if isinstance(idxs, int):
-            idxs = [idxs]
-        seed = copy(self.settings.seed)
-        seeds = seeds or seed
-        if isinstance(seeds, int):
-            seeds = [seeds]
+        inits = self.drafted[idxs]
+        self._render_loop(
+            inits=inits, seeds=seeds, skip_same=skip_same, show=show, **kwargs
+        )
 
-        for seed_ in seeds:
-            self.settings.seed = seed_
-            for idx in idxs:
-                if self.drafted[idx].settings.seed == self.settings.seed:
-                    if skip_same:
-                        continue
-                    warnings.warn(
-                        "The current seed and the seed used to generate the "
-                        "image are the same. This can lead to undesired "
-                        'effects, like "burn-in".'
-                    )
-                init_image = self.drafted[idx].image.resize(
-                    (self.settings.width, self.settings.height)
-                )
-                image = self._render(init_image=init_image)[0]
-                image = StableImage(
-                    prompt=self.prompt,
-                    settings=self.settings,
-                    image=image,
-                    init=self.drafted[idx],
-                )
-                if self._draft:
-                    self.drafted.append(image)
-                else:
-                    self.generated.append(image)
-                if show is True:
-                    image.show()
-
-        self.settings.seed = seed
 
     def refine(
         self,
@@ -417,43 +414,12 @@ class StableWorkshop:
         """
         if not self.generated:
             raise RuntimeError(
-                "Generate something with `draft_off` before tuning."
+                "Generate something with `draft_off` before refining."
             )
-        self._update_settings(**kwargs)
-        if isinstance(idxs, int):
-            idxs = [idxs]
-        seed = copy(self.settings.seed)
-        seeds = seeds or seed
-        if isinstance(seeds, int):
-            seeds = [seeds]
-
-        for seed_ in seeds:
-            self.settings.seed = seed_
-            for idx in idxs:
-                if self.drafted[idx].settings.seed == self.settings.seed:
-                    if skip_same:
-                        continue
-                    warnings.warn(
-                        "The current seed and the seed used to generate the "
-                        "image are the same. This can lead to undesired "
-                        'effects, like "burn-in".'
-                    )
-                init_image = self.generated[idx].image.resize(
-                    (self.settings.width, self.settings.height)
-                )
-                image = self._render(init_image=init_image)[0]
-                image = StableImage(
-                    prompt=self.prompt,
-                    settings=self.settings,
-                    image=image,
-                    init=self.generated[idx],
-                )
-                if self._draft:
-                    self.drafted.append(image)
-                else:
-                    self.generated.append(image)
-                if show is True:
-                    image.show()
+        inits = self.generated[idxs]
+        self._render_loop(
+            inits=inits, seeds=seeds, skip_same=skip_same, show=show, **kwargs
+        )
 
     def upscale(
         self,
