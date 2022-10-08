@@ -15,8 +15,7 @@ import questionary
 def _select_result(choices):
     choices = ["\n   ".join(textwrap.wrap(c)) + "\n" for c in choices]
     result = questionary.select(
-        "Which subject should we choose?",
-        choices=choices
+        "Which subject should we choose?", choices=choices
     ).ask()
     return result.replace("\n", " ").replace("    ", " ").strip()
 
@@ -245,6 +244,11 @@ class StablePrompt:
         self.medium = "wildlife photography"
         self.artists = ["Marsel Van Oosten"]
         self.trending = "shutterstock"
+        self.flavors = [
+            "national geographic photo",
+            "majestic",
+            "uhd image",
+        ]
 
     @property
     def dict(self):

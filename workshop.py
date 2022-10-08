@@ -44,7 +44,7 @@ from torch import autocast, cuda
 from torchvision import transforms
 
 from gobig import upscale, gobig
-from image import StableImage, StableGallery, show_image_grid
+from image import StableImage, StableGallery
 from prompt import StablePrompt
 from settings import SEEDS, StableSettings
 
@@ -227,8 +227,8 @@ class StableWorkshop:
         self.draft_off()
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)
-        self.generated = []
-        self.drafted = []
+        self.generated = StableGallery()
+        self.drafted = StableGallery()
 
     def draft_on(self, iters: int = 10):
         """Enable draft mode.

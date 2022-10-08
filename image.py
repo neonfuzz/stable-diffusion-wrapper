@@ -10,7 +10,7 @@ Functions:
 """
 
 
-from copy import copy
+from copy import deepcopy as copy
 from math import ceil, sqrt
 import os
 import yaml
@@ -40,7 +40,8 @@ def show_image_grid(imgs, rows=None, cols=None, labels=None):
         imgs = [_add_label(im, lab) for im, lab in zip(imgs, labels)]
     rows = rows or int(sqrt(len(imgs)))
     cols = cols or int(ceil(len(imgs) / rows))
-    width, height = imgs[0].size
+    width = max([i.width for i in imgs])
+    height = max([i.height for i in imgs])
     grid = Image.new("RGB", size=(cols * width, rows * height))
 
     for i, img in enumerate(imgs):
