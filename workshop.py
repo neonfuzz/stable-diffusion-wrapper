@@ -273,10 +273,14 @@ class StableWorkshop:
         """Show drafted images in a grid, with index labels."""
         self.drafted.show(**kwargs)
 
-    def hallucinate(self, show: bool = True, **kwargs):
+    def hallucinate(
+        self, seeds: Union[int, Iterable] = None, show: bool = True, **kwargs
+    ):
         """Generate an image from scratch.
 
         Args:
+            seeds (int or iterable): seed(s) with which to hallucinate,
+                default=`settings.seed`
             show (bool): show the image after generation, default=True
 
         Additional kwargs (except strength) are updated in settings and will
@@ -285,106 +289,168 @@ class StableWorkshop:
         `strength` will be temporarily set to 1.0 for this method call,
         regardless of internal settings or kwargs.
 
-        Any generated images will be added to `generated`.
+        Any generated images will be added to `generated` or to `drafted`,
+        depending on the use of `draft_on/draft_off`.
         """
         strength = copy(self.settings.strength)
+        seed = copy(self.settings.seed)
         self._update_settings(**kwargs)
         self.settings.strength = 1.0
-        image = self._render()[0]
-        image = StableImage(
-            prompt=self.prompt, settings=self.settings, image=image
-        )
-        if self._draft:
-            self.drafted.append(image)
-        else:
-            self.generated.append(image)
-        self.settings.strength = strength
-        if show is True:
-            image.show()
+        seeds = seeds or seed
+        if isinstance(seeds, int):
+            seeds = [seeds]
 
-    def tune(self, idx: int, show: bool = True, **kwargs):
+        for seed_ in seeds:
+            self.settings.seed = seed_
+            image = self._render()[0]
+            image = StableImage(
+                prompt=self.prompt, settings=self.settings, image=image
+            )
+            if self._draft:
+                self.drafted.append(image)
+            else:
+                self.generated.append(image)
+            if show is True:
+                image.show()
+
+        self.settings.strength = strength
+        self.settings.seed = seed
+
+    def tune(
+        self,
+        idxs: Union[int, Iterable],
+        seeds: Union[int, Iterable] = None,
+        skip_same: bool = True,
+        show: bool = True,
+        **kwargs,
+    ):
         """Tune a `draft_on` image into a (hopefully) better image.
 
         Args:
-            idx (int): index of `drafted`
+            idxs (int or iterable): inde(x/ces) of `drafted`
+            seeds (int or iterable): seed(s) with which to tune,
+                default=`settings.seed`
+            skip_same (bool): skip init images with the same seed,
+                default: True
             show (bool): show the image after generation, default=True
 
         Additional kwargs are updated in settings and will persist after
         calling this method.
 
-        Any generated images will be added to `generated`.
+        Any generated images will be added to `generated` or to `drafted`,
+        depending on the use of `draft_on/draft_off`.
         """
         if not self.drafted:
             raise RuntimeError(
                 "Draft something with `draft_on` before tuning."
             )
         self._update_settings(**kwargs)
-        if self.drafted[idx].settings.seed == self.settings.seed:
-            warnings.warn(
-                "The current seed and the seed used to generate the image are "
-                'the same. This can lead to undesired effects, like "burn-in".'
-            )
-        init_image = self.drafted[idx].image.resize(
-            (self.settings.width, self.settings.height)
-        )
-        image = self._render(init_image=init_image)[0]
-        image = StableImage(
-            prompt=self.prompt,
-            settings=self.settings,
-            image=image,
-            init=self.drafted[idx],
-        )
-        if self._draft:
-            self.drafted.append(image)
-        else:
-            self.generated.append(image)
-        if show is True:
-            image.show()
+        if isinstance(idxs, int):
+            idxs = [idxs]
+        seed = copy(self.settings.seed)
+        seeds = seeds or seed
+        if isinstance(seeds, int):
+            seeds = [seeds]
 
-    def refine(self, idx: int, show: bool = True, **kwargs):
+        for seed_ in seeds:
+            self.settings.seed = seed_
+            for idx in idxs:
+                if self.drafted[idx].settings.seed == self.settings.seed:
+                    if skip_same:
+                        continue
+                    warnings.warn(
+                        "The current seed and the seed used to generate the "
+                        "image are the same. This can lead to undesired "
+                        'effects, like "burn-in".'
+                    )
+                init_image = self.drafted[idx].image.resize(
+                    (self.settings.width, self.settings.height)
+                )
+                image = self._render(init_image=init_image)[0]
+                image = StableImage(
+                    prompt=self.prompt,
+                    settings=self.settings,
+                    image=image,
+                    init=self.drafted[idx],
+                )
+                if self._draft:
+                    self.drafted.append(image)
+                else:
+                    self.generated.append(image)
+                if show is True:
+                    image.show()
+
+        self.settings.seed = seed
+
+    def refine(
+        self,
+        idxs: Union[int, Iterable],
+        seeds: Union[int, Iterable] = None,
+        skip_same: bool = True,
+        show: bool = True,
+        **kwargs,
+    ):
         """Refine a `generated` image.
 
         Can only be run after at least one of `hallucinate` or `tune`.
 
         Args:
-            idx (int): index of `generated`
+            idxs (int or iterable): inde(x/ces) of `generated`
+            seeds (int or iterable): seed(s) with which to tune,
+                default=`settings.seed`
+            skip_same (bool): skip init images with the same seed,
+                default: True
             show (bool): show the image after generation, default=True
 
         Additional kwargs are updated in settings and will persist after
         calling this method.
 
-        Any generated images will be added to `generated`.
+        Any generated images will be added to `generated` or to `drafted`,
+        depending on the use of `draft_on/draft_off`.
         """
         if not self.generated:
             raise RuntimeError(
                 "Generate something with `draft_off` before tuning."
             )
         self._update_settings(**kwargs)
-        if self.generated[idx].settings.seed == self.settings.seed:
-            warnings.warn(
-                "The current seed and the seed used to generate the image are "
-                'the same. This can lead to undesired effects, like "burn-in".'
-            )
-        init_image = self.generated[idx].image.resize(
-            (self.settings.width, self.settings.height)
-        )
-        image = self._render(init_image=init_image)[0]
-        image = StableImage(
-            prompt=self.prompt,
-            settings=self.settings,
-            image=image,
-            init=self.generated[idx],
-        )
-        if self._draft:
-            self.drafted.append(image)
-        else:
-            self.generated.append(image)
-        if show is True:
-            image.show()
+        if isinstance(idxs, int):
+            idxs = [idxs]
+        seed = copy(self.settings.seed)
+        seeds = seeds or seed
+        if isinstance(seeds, int):
+            seeds = [seeds]
+
+        for seed_ in seeds:
+            self.settings.seed = seed_
+            for idx in idxs:
+                if self.drafted[idx].settings.seed == self.settings.seed:
+                    if skip_same:
+                        continue
+                    warnings.warn(
+                        "The current seed and the seed used to generate the "
+                        "image are the same. This can lead to undesired "
+                        'effects, like "burn-in".'
+                    )
+                init_image = self.generated[idx].image.resize(
+                    (self.settings.width, self.settings.height)
+                )
+                image = self._render(init_image=init_image)[0]
+                image = StableImage(
+                    prompt=self.prompt,
+                    settings=self.settings,
+                    image=image,
+                    init=self.generated[idx],
+                )
+                if self._draft:
+                    self.drafted.append(image)
+                else:
+                    self.generated.append(image)
+                if show is True:
+                    image.show()
 
     def upscale(
         self,
-        idx: int,
+        idxs: Union[int, Iterable],
         show: bool = True,
         render_more: bool = True,
         face_enhance: bool = True,
@@ -395,7 +461,7 @@ class StableWorkshop:
         Can only be run after at least one of `hallucinate` or `tune`.
 
         Args:
-            idx (int): index of `generated`
+            idxs (int or iterable): inde(x/ces) of `generated`
             show (bool): show the image after generation, default=True
             render_more (bool): apply more passes with Stable Diffusion to the
                 upscaled image, default=True
@@ -404,7 +470,8 @@ class StableWorkshop:
 
         Additional kwargs are passed to `gobig`
 
-        Any generated images will be added to `generated`.
+        Any generated images will be added to `generated` or to `drafted`,
+        depending on the use of `draft_on/draft_off`.
         """
         if not self.generated:
             raise RuntimeError(
@@ -413,83 +480,38 @@ class StableWorkshop:
         if self._draft:
             raise RuntimeError("You cannot upscale while in draft mode.")
 
-        init_image = self.generated[idx].image
-        if render_more:
-            ws.draft_off()
-            image = gobig(
-                init_image,
-                prompt=str(self.prompt),
-                pipe=self._pipe,
-                face_enhance=face_enhance,
-                **kwargs,
-            )
-        else:
-            image = upscale(init_image, face_enhance=face_enhance, **kwargs)
-        settings = copy(self.settings)
-        settings.width, settings.height = image.size
-        settings.iters = kwargs.get("diffuse_iters", 50)
-        settings.cfg = kwargs.get("cfg", 6.0)
-        settings.strength = kwargs.get("strength", 0.3)
-        image = StableImage(
-            prompt=self.prompt,
-            settings=settings,
-            image=image,
-            init=self.generated[idx],
-        )
-        self.generated.append(image)
-        if show is True:
-            image.show()
-
-    def grid_search(
-        self,
-        seeds: Union[Iterable[int], int] = None,
-        idxs: Union[Iterable[int], int] = None,
-        mode: str = "hallucinate",
-        skip_same: bool = True,
-        **kwargs,
-    ):
-        """Generate across multiple seeds and indices.
-
-        Args:
-            seeds (int or list of int): seeds to search across,
-                default: `SEEDS`
-            idxs (int or list of int): indices to search across
-                (for "tune" and "refine")
-            mode (str): one of "tune", "refine", or "hallucinate";
-                default: "hallucinate"
-            skip_same (bool): skip init images with the same seed
-                (for "tune" and "refine"), default: True
-
-            Additional kwargs are used at render time for this call only.
-
-        Any generated images will be added to `generated`.
-        """
-        if mode not in ("tune", "refine", "hallucinate"):
-            raise ValueError(
-                "`mode` must be one of 'tune', 'refine', or 'hallucinate', "
-                f"not {mode}"
-            )
-        start_seed = self.settings.seed
         if isinstance(idxs, int):
             idxs = [idxs]
-        if isinstance(seeds, int):
-            seeds = [seeds]
-        seeds = seeds or SEEDS
-        for seed in seeds:
-            self.settings.seed = seed
-            if mode == "hallucinate":
-                self.hallucinate(**kwargs)
-            elif mode == "tune":
-                for idx in idxs:
-                    if skip_same and self.drafted[idx].settings.seed == seed:
-                        continue
-                    self.tune(idx, **kwargs)
-            elif mode == "refine":
-                for idx in idxs:
-                    if skip_same and self.generated[idx].settings.seed == seed:
-                        continue
-                    self.refine(idx, **kwargs)
-        self.settings.seed = start_seed
+
+        for idx in idxs:
+            init_image = self.generated[idx].image
+            if render_more:
+                ws.draft_off()
+                image = gobig(
+                    init_image,
+                    prompt=str(self.prompt),
+                    pipe=self._pipe,
+                    face_enhance=face_enhance,
+                    **kwargs,
+                )
+            else:
+                image = upscale(
+                    init_image, face_enhance=face_enhance, **kwargs
+                )
+            settings = copy(self.settings)
+            settings.width, settings.height = image.size
+            settings.iters = kwargs.get("diffuse_iters", 50)
+            settings.cfg = kwargs.get("cfg", 6.0)
+            settings.strength = kwargs.get("strength", 0.3)
+            image = StableImage(
+                prompt=self.prompt,
+                settings=settings,
+                image=image,
+                init=self.generated[idx],
+            )
+            self.generated.append(image)
+            if show is True:
+                image.show()
 
     def save(self):
         """Save all `generated` images. See `StableImage.save`."""
