@@ -475,7 +475,7 @@ class StableWorkshop:
         for idx in idxs:
             init_image = self.generated[idx].image
             if render_more:
-                ws.draft_off()
+                self.draft_off()
                 image = gobig(
                     init_image,
                     prompt=str(self.prompt),
