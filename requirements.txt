@@ -3,6 +3,7 @@ diffusers>=0.3.0
 gfpgan
 openai
 pillow>=9.2.0
+pygame
 questionary
 realesrgan
 torch
