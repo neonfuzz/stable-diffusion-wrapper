@@ -28,11 +28,7 @@ import gc
 from typing import Iterable, Union
 import warnings
 
-from diffusers import (
-    LMSDiscreteScheduler,
-    PNDMScheduler,
-    StableDiffusionImg2ImgPipeline,
-)
+from diffusers import LMSDiscreteScheduler, PNDMScheduler
 from diffusers.training_utils import set_seed
 import numpy as np
 from PIL import Image
@@ -46,6 +42,7 @@ from gobig import upscale, gobig
 from image import StableImage, StableGallery
 from prompt import StablePrompt
 from settings import SEEDS, StableSettings
+from pipeline_stable_diffusion_inpaint import StableDiffusionInpaintPipeline
 
 
 def load_learned_embed_in_clip(
@@ -157,7 +154,7 @@ class StableWorkshop:
         version = str(version)
         if version not in [str(i) for i in range(1, 5)]:
             raise ValueError(f"`version` needs to be 1-4, not {version}")
-        self._pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
+        self._pipe = StableDiffusionInpaintPipeline.from_pretrained(
             f"CompVis/stable-diffusion-v1-{version}",
             torch_dtype=torch.float16,
             revision="fp16",
@@ -197,6 +194,7 @@ class StableWorkshop:
             result = self._pipe(
                 prompt,
                 init_image=init_image,
+                mask_image=self.mask,
                 strength=self.settings.strength,
                 guidance_scale=self.settings.cfg,
                 num_inference_steps=self.settings.iters,
@@ -505,3 +503,7 @@ class StableWorkshop:
     def save(self):
         """Save all `generated` images. See `StableImage.save`."""
         self.generated.save()
+
+    @property
+    def mask(self):
+        return Image.new("L", (self.settings.width, self.settings.height), 255)
