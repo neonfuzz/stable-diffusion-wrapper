@@ -183,18 +183,24 @@ class StableWorkshop:
         init_tensor = (init_tensor["sample"] / 2 + 0.5).clamp(0, 1)
         return transforms.ToPILImage()(init_tensor[0])
 
-    def _render(self, init_image: Image = None, num: int = 1):
+    def _render(
+        self, init_image: Union[Image.Image, StableImage] = None, num: int = 1
+    ):
         set_seed(self.settings.seed)
         prompt = [str(self.prompt)] * num
         if init_image is None:
             init_image = self._init_image()
+            mask = Image.new(
+                "L", (self.settings.width, self.settings.height), 255
+            )
         elif isinstance(init_image, StableImage):
+            mask = init_image.mask
             init_image = init_image.image
         with autocast("cuda"):
             result = self._pipe(
                 prompt,
                 init_image=init_image,
-                mask_image=self.mask,
+                mask_image=mask,
                 strength=self.settings.strength,
                 guidance_scale=self.settings.cfg,
                 num_inference_steps=self.settings.iters,
@@ -504,6 +510,3 @@ class StableWorkshop:
         """Save all `generated` images. See `StableImage.save`."""
         self.generated.save()
 
-    @property
-    def mask(self):
-        return Image.new("L", (self.settings.width, self.settings.height), 255)

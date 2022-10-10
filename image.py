@@ -17,6 +17,7 @@ import yaml
 
 from PIL import Image, ImageDraw, ImageFont
 
+from mask import StableMasker
 from prompt import StablePrompt
 from settings import StableSettings
 
@@ -94,11 +95,14 @@ class StableImage:
     Read-Only Instance Attributes:
         prompt (StablePrompt): the prompt used to generate the image
         settings (StableSettings): the settings used to generate the image
+        image (Image.Image): the raw image data
+        mask (Image.Image): the infill mask
         init (StableImage): the seed image, if it exists
         hash (str): a unique hash for identifying the image
 
     Methods:
         show: display the image
+        edit_mask: edit the infill mask
         save: save the image and settings to file
         open: open an image from file
     """
@@ -113,6 +117,7 @@ class StableImage:
         self._prompt = copy(prompt)
         self._settings = copy(settings) or StableSettings()
         self._image = copy(image)
+        self._mask = None
         self._init = init
 
     def __repr__(self):
@@ -153,14 +158,36 @@ class StableImage:
                         self.hash: {
                             "prompt": str(self.prompt),
                             "settings": self.settings,
+                            "mask": str(self._mask),
                             "init": str(self.init),
                         }
                     }
                 )
             )
 
+        if self._mask:
+            self._mask.save()
+
         if self.init:
             self.init.save()
+
+    def edit_mask(self):
+        """Interactively edit the infill mask.
+
+        Displays `image` to screen in an editable window. Left click adds mask,
+        right click erases mask. Scroll up/down changes brush size. "Escape" or
+        "Return" to finalize mask. "R" to erase mask and start over.
+        """
+        masker = StableMasker()
+        mask = masker(self.image)
+        self._mask = StableImage(prompt="mask", settings={}, image=mask)
+
+    @property
+    def mask(self):
+        """Return mask."""
+        if self._mask is not None:
+            return self._mask.image
+        return Image.new("L", (self.settings.width, self.settings.height), 0)
 
     prompt = property(fget=lambda self: self._prompt)
     settings = property(fget=lambda self: self._settings)
