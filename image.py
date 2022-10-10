@@ -103,6 +103,7 @@ class StableImage:
     Methods:
         show: display the image
         edit_mask: edit the infill mask
+        reset_mask: set infill mask to default
         save: save the image and settings to file
         open: open an image from file
     """
@@ -182,12 +183,16 @@ class StableImage:
         mask = masker(self.image)
         self._mask = StableImage(prompt="mask", settings={}, image=mask)
 
+    def reset_mask(self):
+        """Reset the mask to default."""
+        self._mask = None
+
     @property
     def mask(self):
         """Return mask."""
         if self._mask is not None:
             return self._mask.image
-        return Image.new("L", (self.settings.width, self.settings.height), 0)
+        return Image.new("L", (self.settings.width, self.settings.height), 255)
 
     prompt = property(fget=lambda self: self._prompt)
     settings = property(fget=lambda self: self._settings)

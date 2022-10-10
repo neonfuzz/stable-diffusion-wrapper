@@ -294,6 +294,7 @@ def gobig(
                 result = pipe(
                     prompt,
                     init_image=chunk,
+                    mask_image=Image.new("L", (piece_size), 255),
                     strength=strength,
                     guidance_scale=cfg,
                     num_inference_steps=diffuse_iters,

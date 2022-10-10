@@ -8,11 +8,10 @@ Functions:
     make_seeds - generate random seeds
 """
 
-
 # bug-fix and easy
 # TODO: clean up "undraft"
+# TODO: implement seed in upscaling
 # TODO: when upscaling images, make sure the metadata is traceable
-# TODO: update notebook
 
 # long-term
 # TODO: don't set instance parameters for method calls
@@ -20,7 +19,6 @@ Functions:
 # TODO: when loading images, set the hash to the loaded one?
 # TODO: average images in latent space
 # TODO: "working" image, which can be set or loaded from file
-# TODO: interactive inpainting?
 
 # pylint: disable=no-member, no-name-in-module
 from copy import copy
@@ -234,7 +232,7 @@ class StableWorkshop:
             leave=True,
         )
         for seed in seeds:
-            self.settings.seed = seed
+            self.settings.seed = int(seed)
             for init in inits:
                 if (
                     init is not None

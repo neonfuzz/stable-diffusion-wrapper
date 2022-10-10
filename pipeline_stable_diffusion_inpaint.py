@@ -35,7 +35,7 @@ def preprocess_image(image):
     w, h = image.size
     w, h = map(lambda x: x - x % 32, (w, h))  # resize to integer multiple of 32
     image = image.resize((w, h), resample=PIL.Image.LANCZOS)
-    image = np.array(image).astype(np.float32) / 255.0
+    image = np.array(image).astype(np.float16) / 255.0
     image = image[None].transpose(0, 3, 1, 2)
     image = torch.from_numpy(image)
     return 2.0 * image - 1.0
@@ -47,10 +47,9 @@ def preprocess_mask(mask):
     w, h = map(lambda x: x - x % 32, (w, h))  # resize to integer multiple of 32
     mask = mask.resize((w // 8, h // 8), resample=PIL.Image.NEAREST)
     mask = np.array(mask) / 255.0
-    mask = np.tile(mask, (4, 1, 1))
-    mask = mask[None].transpose(0, 1, 2, 3)  # what does this step do?
+    mask = np.tile(mask, (1, 4, 1, 1))
     mask = 1 - mask  # repaint white, keep black
-    mask = torch.from_numpy(mask)
+    mask = torch.from_numpy(mask).to(torch.float16)
     return mask
 
 
@@ -304,7 +303,7 @@ class StableDiffusionInpaintPipeline(DiffusionPipeline):
             # compute the previous noisy sample x_t -> x_t-1
             if isinstance(self.scheduler, LMSDiscreteScheduler):
                 latents = self.scheduler.step(noise_pred, t_index, latents, **extra_step_kwargs).prev_sample
-                init_latents_proper = self.scheduler.add_noise(init_latents_orig, noise, timesteps)
+                init_latents_proper = self.scheduler.add_noise(init_latents_orig, noise, i+1)
             else:
                 latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs).prev_sample
                 init_latents_proper = self.scheduler.add_noise(init_latents_orig, noise, t.to(torch.long))
