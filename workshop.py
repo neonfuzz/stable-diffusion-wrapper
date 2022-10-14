@@ -182,16 +182,15 @@ class StableWorkshop:
     def _render(
         self,
         settings: StableSettings,
+        prompt: StablePrompt,
         init_image: Union[Image.Image, StableImage] = None,
         num: int = 1,
     ) -> Iterable[Image.Image]:
         set_seed(settings.seed)
-        prompt = [str(self.prompt)] * num
+        prompt = [str(prompt)] * num
         if init_image is None:
             init_image = self._init_image(settings)
-            mask = Image.new(
-                "L", (settings.width, settings.height), 255
-            )
+            mask = Image.new("L", (settings.width, settings.height), 255)
         elif isinstance(init_image, StableImage):
             mask = init_image.mask
             init_image = init_image.image
@@ -216,52 +215,72 @@ class StableWorkshop:
         show: bool = True,
         **kwargs,
     ):
-        settings = self.settings.copy(**kwargs)
+        # Iterable[StableSettings]
+        settings_iter = kwargs.pop("settings_iter", None)
+        # Iterable[StablePrompt]
+        prompt_iter = kwargs.pop("prompt_iter", None)
+
         if isinstance(seeds, int):
             seeds = [seeds]
-        seeds = seeds or [settings.seed]
+        seeds = seeds or [self.settings.seed]
+        seeds = [int(s) for s in seeds]
+
         if isinstance(inits, StableImage):
             inits = [inits]
         elif inits is None:
             inits = [None]
 
+        if settings_iter is None:
+            settings_iter = []
+            for seed in seeds:
+                settings_iter.extend(
+                    [self.settings.copy(seed=seed, **kwargs)] * len(inits)
+                )
+
+        inits = inits * len(seeds)
+        prompt_iter = prompt_iter or [self.prompt] * len(settings_iter)
+        if not len(settings_iter) == len(prompt_iter) == len(inits):
+            raise ValueError(
+                "Iteration lengths don't match. This shouldn't happen."
+            )
+
         pbar = tqdm(
-            total=len(inits) * len(seeds),
+            total=len(inits),
             desc="batch progress",
             position=0,
             leave=True,
         )
-        for seed in seeds:
-            settings.seed = int(seed)
-            for init in inits:
-                if init is not None and init.settings.seed == settings.seed:
-                    if skip_same:
-                        warnings.warn(
-                            "The current seed and the seed used to generate "
-                            "this image are the same. Because `skip_same` is "
-                            "True, this generation will be skipped."
-                        )
-                        pbar.update(1)
-                        continue
+        for settings, prompt, init in zip(settings_iter, prompt_iter, inits):
+            if init is not None and init.settings.seed == settings.seed:
+                if skip_same:
                     warnings.warn(
                         "The current seed and the seed used to generate this "
-                        "image are the same. This can lead to undesired "
-                        'effects, like "burn-in"'
+                        "image are the same. Because `skip_same` is True, "
+                        "this generation will be skipped."
                     )
-                image = self._render(settings=settings, init_image=init)[0]
-                image = StableImage(
-                    prompt=self.prompt,
-                    settings=settings,
-                    image=image,
-                    init=init,
+                    pbar.update(1)
+                    continue
+                warnings.warn(
+                    "The current seed and the seed used to generate this "
+                    "image are the same. This can lead to undesired effects, "
+                    'like "burn-in".'
                 )
-                if self._draft:
-                    self.drafted.append(image)
-                else:
-                    self.generated.append(image)
-                if show is True:
-                    image.show()
-                pbar.update(1)
+            image = self._render(
+                settings=settings, prompt=prompt, init_image=init
+            )[0]
+            image = StableImage(
+                prompt=self.prompt,
+                settings=settings,
+                image=image,
+                init=init,
+            )
+            if self._draft:
+                self.drafted.append(image)
+            else:
+                self.generated.append(image)
+            if show is True:
+                image.show()
+            pbar.update(1)
 
         pbar.close()
 
@@ -397,7 +416,6 @@ class StableWorkshop:
         self._render_loop(
             inits=inits, seeds=seeds, skip_same=skip_same, show=show, **kwargs
         )
-
 
     def refine(
         self,

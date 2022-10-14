@@ -128,7 +128,7 @@ class StableImage:
         self._settings = copy(settings) or StableSettings()
         self._image = copy(image)
         self._mask = None
-        self._init = init
+        self._init = copy(init)
 
     def __repr__(self):
         return f"StableImage: {self.hash}"
