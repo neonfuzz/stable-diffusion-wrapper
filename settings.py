@@ -9,6 +9,9 @@ Variables:
 """
 
 
+from copy import copy
+
+
 SEEDS = [1337, 271, 314159, 41245, 59017, 61023]
 
 
@@ -23,6 +26,10 @@ class StableSettings:
         cfg (float): classifier free guidance, default=6.0
         strength (float): maintain original image, default=1.0
         dict (dict): represent setting as a dictionary
+
+    Methods:
+        copy: return a copy of the StableSettings object
+        update: update attributes in place
 
     Note that `height` and `width` must be multiples of 8. Weird results occur
     if both `height` and `width` are over 512. It is recommended to keep one
@@ -64,6 +71,20 @@ class StableSettings:
 
     def __setitem__(self, idx, value):
         self.__dict__[idx] = value
+
+    def copy(self, **kwargs):
+        """Return a copy of the StableSettings object.
+
+        kwargs are updated in the copy.
+        """
+        ret = copy(self)
+        ret.update(**kwargs)
+        return ret
+
+    def update(self, **kwargs):
+        """Update attributes in place via kwargs."""
+        for key, value in kwargs.items():
+            self[key] = value
 
     @property
     def dict(self):

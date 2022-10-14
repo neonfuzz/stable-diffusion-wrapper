@@ -14,8 +14,6 @@ Functions:
 # TODO: when upscaling images, make sure the metadata is traceable
 
 # long-term
-# TODO: don't set instance parameters for method calls
-#       need a better way to handle "global" and method settings
 # TODO: when loading images, set the hash to the loaded one?
 # TODO: average images in latent space
 # TODO: "working" image, which can be set or loaded from file
@@ -163,13 +161,13 @@ class StableWorkshop:
         self._pipe = self._pipe.to("cuda")
         self._pipe.enable_attention_slicing()
 
-    def _init_image(self):
+    def _init_image(self, settings: StableSettings) -> Image.Image:
         latents = torch.randn(
             (
                 1,
                 self._pipe.unet.in_channels,
-                self.settings.height // 8,
-                self.settings.width // 8,
+                settings.height // 8,
+                settings.width // 8,
             ),
             device="cuda",
             dtype=torch.float16,
@@ -182,14 +180,17 @@ class StableWorkshop:
         return transforms.ToPILImage()(init_tensor[0])
 
     def _render(
-        self, init_image: Union[Image.Image, StableImage] = None, num: int = 1
-    ):
-        set_seed(self.settings.seed)
+        self,
+        settings: StableSettings,
+        init_image: Union[Image.Image, StableImage] = None,
+        num: int = 1,
+    ) -> Iterable[Image.Image]:
+        set_seed(settings.seed)
         prompt = [str(self.prompt)] * num
         if init_image is None:
-            init_image = self._init_image()
+            init_image = self._init_image(settings)
             mask = Image.new(
-                "L", (self.settings.width, self.settings.height), 255
+                "L", (settings.width, settings.height), 255
             )
         elif isinstance(init_image, StableImage):
             mask = init_image.mask
@@ -199,9 +200,9 @@ class StableWorkshop:
                 prompt,
                 init_image=init_image,
                 mask_image=mask,
-                strength=self.settings.strength,
-                guidance_scale=self.settings.cfg,
-                num_inference_steps=self.settings.iters,
+                strength=settings.strength,
+                guidance_scale=settings.cfg,
+                num_inference_steps=settings.iters,
             )
         gc.collect()
         cuda.empty_cache()
@@ -215,11 +216,10 @@ class StableWorkshop:
         show: bool = True,
         **kwargs,
     ):
-        seed_ = copy(self.settings.seed)
-        self._update_settings(**kwargs)
+        settings = self.settings.copy(**kwargs)
         if isinstance(seeds, int):
             seeds = [seeds]
-        seeds = seeds or [self.seed]
+        seeds = seeds or [settings.seed]
         if isinstance(inits, StableImage):
             inits = [inits]
         elif inits is None:
@@ -232,12 +232,9 @@ class StableWorkshop:
             leave=True,
         )
         for seed in seeds:
-            self.settings.seed = int(seed)
+            settings.seed = int(seed)
             for init in inits:
-                if (
-                    init is not None
-                    and init.settings.seed == self.settings.seed
-                ):
+                if init is not None and init.settings.seed == settings.seed:
                     if skip_same:
                         warnings.warn(
                             "The current seed and the seed used to generate "
@@ -251,10 +248,10 @@ class StableWorkshop:
                         "image are the same. This can lead to undesired "
                         'effects, like "burn-in"'
                     )
-                image = self._render(init_image=init)[0]
+                image = self._render(settings=settings, init_image=init)[0]
                 image = StableImage(
                     prompt=self.prompt,
-                    settings=self.settings,
+                    settings=settings,
                     image=image,
                     init=init,
                 )
@@ -267,11 +264,6 @@ class StableWorkshop:
                 pbar.update(1)
 
         pbar.close()
-        self.settings.seed = seed_
-
-    def _update_settings(self, **kwargs):
-        for key, value in kwargs.items():
-            self.settings[key] = value
 
     def load_token(self, fpath: str, token: str = None):
         """Load a trained token into the model.
@@ -361,8 +353,7 @@ class StableWorkshop:
                 default=`settings.seed`
             show (bool): show the image after generation, default=True
 
-        Additional kwargs (except strength) are updated in settings and will
-        persist after calling this method.
+        Additional kwargs will be used for this method call only.
 
         `strength` will be temporarily set to 1.0 for this method call,
         regardless of internal settings or kwargs.
@@ -370,10 +361,10 @@ class StableWorkshop:
         Any generated images will be added to `generated` or to `drafted`,
         depending on the use of `draft_on/draft_off`.
         """
-        strength = copy(self.settings.strength)
-        self.settings.strength = 1.0
-        self._render_loop(inits=None, seeds=seeds, show=show, **kwargs)
-        self.settings.strength = strength
+        kwargs.pop("strength", None)
+        self._render_loop(
+            inits=None, seeds=seeds, show=show, strength=1.0, **kwargs
+        )
 
     def tune(
         self,
@@ -393,8 +384,7 @@ class StableWorkshop:
                 default: True
             show (bool): show the image after generation, default=True
 
-        Additional kwargs are updated in settings and will persist after
-        calling this method.
+        Additional kwargs will be used for this method call only.
 
         Any generated images will be added to `generated` or to `drafted`,
         depending on the use of `draft_on/draft_off`.
@@ -429,8 +419,7 @@ class StableWorkshop:
                 default: True
             show (bool): show the image after generation, default=True
 
-        Additional kwargs are updated in settings and will persist after
-        calling this method.
+        Additional kwargs will be used for this method call only.
 
         Any generated images will be added to `generated` or to `drafted`,
         depending on the use of `draft_on/draft_off`.
