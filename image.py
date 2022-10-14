@@ -80,16 +80,15 @@ class StableGallery(list):
     def __add__(self, other_obj):
         return StableGallery(super().__add__(other_obj))
 
-    def show(self, label: bool = True, **kwargs):
+    def show(self, **kwargs):
         """Show the gallery.
 
         Args:
-            label (bool): include automatic image labels, default=True
             labels (list): manually add labels; overrides `label` if passed
 
         Additional kwargs are passed to `show_image_grid`.
         """
-        labels = range(len(self)) if label else None
+        labels = range(len(self))
         kwargs["labels"] = kwargs.pop("labels", labels)
         show_image_grid(self, **kwargs)
 
