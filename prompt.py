@@ -59,6 +59,7 @@ class StablePrompt:
         rainbow: set defaults to be very colorful
         render: set defaults to emulate 3d graphics
         scifi: set defaults to emulate science fiction movies
+        sculpture: set defaults to emulate a marble sculpture
         wildlife: set defaults to emulate wildlife photography
     """
 
@@ -206,7 +207,7 @@ class StablePrompt:
     def rainbow(self):
         """Set attributes for psychadelic colors."""
         self.painting()
-        self.artists = ["Lisa Frank", "Thomas Kinkade", "Georgia O'Keefe"]
+        self.artists = ["Lisa Frank", "Leonid Afremov"]
         self.trending = "behance"
         self.movement = "psychadelic art"
         self.flavors = ["kaliedoscope", "vaporwave", "maximalist"]
@@ -230,6 +231,16 @@ class StablePrompt:
         self.trending = "cg society"
         self.movement = "retrofuturism"
         self.flavors = ["dystopian art, sci-fi", "futuristic"]
+
+    def sculpture(self):
+        """Set attributes for marble sculpture."""
+        self.subject = "Jeff Goldblum"
+        self.details = ["intricate", "dramatic studio lighting"]
+        self.medium = "a marble sculpture"
+        self.artists = ["Antonio Canova"]
+        self.trending = "tumblr"
+        self.movement = ""
+        self.flavors = ["marble sculpture", "zbrush"]
 
     def wildlife(self):
         """Set attributes for wildlife photography."""
