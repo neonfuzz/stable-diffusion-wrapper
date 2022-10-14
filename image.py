@@ -13,6 +13,7 @@ Functions:
 from copy import deepcopy as copy
 from math import ceil, sqrt
 import os
+from typing import Iterable
 import yaml
 
 from PIL import Image, ImageDraw, ImageFont
@@ -33,14 +34,19 @@ def _add_label(img, label):
     return img
 
 
-def show_image_grid(imgs, rows=None, cols=None, labels=None):
+def show_image_grid(
+    imgs: Iterable, rows: int = None, cols: int = None, labels: Iterable = None
+):
     """Display multiple images at once, in a grid format."""
     if isinstance(imgs[0], StableImage):
         imgs = [i.image for i in imgs]
     if labels:
         imgs = [_add_label(im, lab) for im, lab in zip(imgs, labels)]
-    rows = rows or int(sqrt(len(imgs)))
-    cols = cols or int(ceil(len(imgs) / rows))
+    if cols:
+        rows = rows or int(ceil(len(imgs) / cols))
+    else:
+        rows = rows or int(sqrt(len(imgs)))
+        cols = int(ceil(len(imgs) / rows))
     width = max([i.width for i in imgs])
     height = max([i.height for i in imgs])
     grid = Image.new("RGB", size=(cols * width, rows * height))
