@@ -239,6 +239,11 @@ class StableWorkshop:
                     and init.settings.seed == self.settings.seed
                 ):
                     if skip_same:
+                        warnings.warn(
+                            "The current seed and the seed used to generate "
+                            "this image are the same. Because `skip_same` is "
+                            "True, this generation will be skipped."
+                        )
                         pbar.update(1)
                         continue
                     warnings.warn(
