@@ -76,6 +76,9 @@ class StableGallery(list):
             return StableGallery([self.__getitem__(i) for i in idx])
         return super().__getitem__(idx)
 
+    def __add__(self, other_obj):
+        return StableGallery(super().__add__(other_obj))
+
     def show(self, label: bool = True, **kwargs):
         """Show the gallery.
 
