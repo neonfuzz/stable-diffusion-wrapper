@@ -9,7 +9,6 @@ Functions:
 """
 
 # bug-fix and easy
-# TODO: clean up "undraft"
 # TODO: implement seed in upscaling
 # TODO: when upscaling images, make sure the metadata is traceable
 
@@ -113,6 +112,7 @@ class StableWorkshop:
         show_drafted - display drafted images
         hallucinate - generate an image from scratch
         tune - generate an image using a `draft_on` image as a template
+        undraft - re-render a drafted image with `draft_off`
         refine - generate an image using a `generated` image as a template
         upscale - make a generated image larger, with science
         save - save all `generated` images
@@ -415,6 +415,36 @@ class StableWorkshop:
         inits = self.drafted[idxs]
         self._render_loop(
             inits=inits, seeds=seeds, skip_same=skip_same, show=show, **kwargs
+        )
+
+    def undraft(
+        self, idxs: Union[int, Iterable], show: bool = True, iters: int = 50
+    ):
+        """Re-render `drafted` with `draft_off`.
+
+        Args:
+            idxs (int or iterable): inde(x/ces) of `drafted`
+            show (bool): show the image after generation, default=True
+            iters (int): number of iterations to `undraft` with, default=50
+
+        Any generated images will be added to `generated`.
+        """
+        drafts = self.drafted[idxs]
+        if isinstance(drafts, StableImage):
+            drafts = [drafts]
+        inits = [d.init for d in drafts]
+        settings_iter = [d.settings.copy(iters=iters) for d in drafts]
+        prompt_iter = [d.prompt for d in drafts]
+
+        self.draft_off(iters=iters)
+        warnings.warn("Draft mode has been turned off.")
+
+        self._render_loop(
+            inits=inits,
+            skip_same=False,
+            show=show,
+            settings_iter=settings_iter,
+            prompt_iter=prompt_iter,
         )
 
     def refine(
