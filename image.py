@@ -12,7 +12,7 @@ Functions:
 
 from copy import deepcopy as copy
 from math import ceil, sqrt
-import os
+from pathlib import Path
 from typing import Iterable
 import yaml
 
@@ -67,6 +67,7 @@ class StableGallery(list):
 
     Additional methods:
         show - display the images to screen
+        save - save all images
     """
 
     def __getitem__(self, idx):
@@ -154,25 +155,31 @@ class StableImage:
         Image saves to generated/`hash`.png.
         Settings and prompt append to generated/logs.yaml.
         If `init` is not none, `init` saves as well.
+        If `mask` has been edited, `mask` saves as well.
         """
-        try:
-            os.mkdir("generated")
-        except FileExistsError:
-            pass
+        Path("generated").mkdir(parents=True, exist_ok=True)
+        Path("generated/logs.yaml").touch()
+        with open("generated/logs.yaml", "r", encoding="utf-8") as infile:
+            logs = yaml.safe_load(infile)
+        if logs is None:
+            logs = {}
+        if self.hash in logs:
+            return
 
         self.image.save(f"generated/{self.hash}.png")
-        with open("generated/logs.yaml", "a", encoding="utf-8") as logfile:
-            logfile.write(
-                yaml.dump(
-                    {
-                        self.hash: {
-                            "prompt": str(self.prompt),
-                            "settings": self.settings,
-                            "mask": str(self._mask),
-                            "init": str(self.init),
-                        }
-                    }
-                )
+        logs[self.hash] = {
+            "prompt": str(self.prompt),
+            "settings": self.settings.dict,
+            "mask": str(self._mask),
+            "init": str(self.init),
+        }
+        with open("generated/logs.yaml", "w", encoding="utf-8") as outfile:
+            yaml.safe_dump(
+                logs,
+                outfile,
+                explicit_start=True,
+                explicit_end=True,
+                width=66,
             )
 
         if self._mask:
