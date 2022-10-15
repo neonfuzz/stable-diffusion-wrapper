@@ -128,6 +128,7 @@ class StableDiffusionInpaintPipeline(DiffusionPipeline):
         prompt: Union[str, List[str]],
         init_image: Union[torch.FloatTensor, PIL.Image.Image],
         mask_image: Union[torch.FloatTensor, PIL.Image.Image],
+        neg_input: Union[str, List[str]] = "",
         strength: float = 0.8,
         num_inference_steps: Optional[int] = 50,
         guidance_scale: Optional[float] = 7.5,
@@ -149,6 +150,8 @@ class StableDiffusionInpaintPipeline(DiffusionPipeline):
                 `Image`, or tensor representing an image batch, to mask `init_image`. White pixels in the mask will be
                 replaced by noise and therefore repainted, while black pixels will be preserved. The mask image will be
                 converted to a single channel (luminance) before use.
+            neg_input (`str` or `List[str]`, *optional*, defaults to ""):
+                Input used to condition the image generation. Effectively subtracts this value from `prompt`.
             strength (`float`, *optional*, defaults to 0.8):
                 Conceptually, indicates how much to inpaint the masked area. Must be between 0 and 1. When `strength`
                 is 1, the denoising process will be run on the masked area for the full number of iterations specified
@@ -257,7 +260,7 @@ class StableDiffusionInpaintPipeline(DiffusionPipeline):
         if do_classifier_free_guidance:
             max_length = text_input.input_ids.shape[-1]
             uncond_input = self.tokenizer(
-                [""] * batch_size, padding="max_length", max_length=max_length, return_tensors="pt"
+                [neg_input] * batch_size, padding="max_length", max_length=max_length, return_tensors="pt"
             )
             uncond_embeddings = self.text_encoder(uncond_input.input_ids.to(self.device))[0]
 

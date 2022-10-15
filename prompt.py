@@ -84,6 +84,7 @@ class StablePrompt:
                 "reimagined by industrial light and magic",
             ],
         )
+        self.neg = ""
 
     def __repr__(self):
         return (
@@ -152,9 +153,11 @@ class StablePrompt:
         self.trending = ""
         self.movement = ""
         self.flavors = []
+        self.neg = ""
 
     def painting(self):
         """Set attributes for a painting."""
+        self.zero()
         self.subject = "a fantasy landscape"
         self.details = ["blue sky", "grass", "river"]
         self.medium = "a detailed matte painting"
@@ -165,6 +168,7 @@ class StablePrompt:
 
     def photo(self):
         """Set attributes for photography."""
+        self.zero()
         self.subject = "a dramatic landscape"
         self.details = ["blue sky", "grass", "river"]
         self.medium = "a photograph"
@@ -186,6 +190,7 @@ class StablePrompt:
 
     def portrait(self):
         """Set attributes for a painterly portrait."""
+        self.painting()
         self.subject = "a person"
         self.details = [
             "fantastic eyes",
@@ -214,6 +219,7 @@ class StablePrompt:
 
     def render(self):
         """Set attributes for 3d rendering."""
+        self.zero()
         self.subject = "a robot"
         self.details = ["toonami", "shiny"]
         self.medium = "a computer rendering"
@@ -224,6 +230,7 @@ class StablePrompt:
 
     def scifi(self):
         """Set attributes for science fiction scenes."""
+        self.zero()
         self.subject = "a cityscape"
         self.details = ["rain", "reflections"]
         self.medium = "a movie still"
@@ -234,6 +241,7 @@ class StablePrompt:
 
     def sculpture(self):
         """Set attributes for marble sculpture."""
+        self.zero()
         self.subject = "Jeff Goldblum"
         self.details = ["intricate", "dramatic studio lighting"]
         self.medium = "a marble sculpture"

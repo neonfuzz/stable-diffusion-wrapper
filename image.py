@@ -168,6 +168,7 @@ class StableImage:
         self.image.save(f"generated/{self.hash}.png")
         logs[self.hash] = {
             "prompt": str(self.prompt),
+            "neg": self.prompt.neg,
             "settings": self.settings.dict,
             "mask": str(self._mask),
             "init": str(self.init),

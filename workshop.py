@@ -187,6 +187,7 @@ class StableWorkshop:
         num: int = 1,
     ) -> Iterable[Image.Image]:
         set_seed(settings.seed)
+        neg = prompt.neg
         prompt = [str(prompt)] * num
         if init_image is None:
             init_image = self._init_image(settings)
@@ -199,6 +200,7 @@ class StableWorkshop:
                 prompt,
                 init_image=init_image,
                 mask_image=mask,
+                neg_input=neg,
                 strength=settings.strength,
                 guidance_scale=settings.cfg,
                 num_inference_steps=settings.iters,
