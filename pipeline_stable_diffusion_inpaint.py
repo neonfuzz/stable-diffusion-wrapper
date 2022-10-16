@@ -13,6 +13,7 @@ interface.
 # pylint: disable=line-too-long, missing-function-docstring, invalid-name
 # pylint: disable=too-many-arguments, too-many-statements
 import inspect
+import re
 from typing import List, Optional, Union
 
 import numpy as np
@@ -122,6 +123,53 @@ class StableDiffusionInpaintPipeline(DiffusionPipeline):
         # set slice_size = `None` to disable `set_attention_slice`
         self.enable_attention_slice(None)
 
+    # "{text:weight|text2:weight2}"
+    @torch.no_grad()
+    def get_embeddings_with_modifiers(self, prompt):
+        if isinstance(prompt, List):
+            return torch.vstack(
+                [self.get_embeddings_with_modifiers(p) for p in prompt]
+            )
+        # Extract modifiers and weights using regexes.
+        try:
+            modifier_string = "|".join(re.search(r"{(.*)}", prompt).groups())
+        except AttributeError:
+            texts = []
+            weights = []
+        else:
+            modifiers = modifier_string.split("|")
+            texts = [re.search(r"(.*):", m).groups()[0] for m in modifiers]
+            weights = [
+                float(re.search(r".*: *([-\d\.]+)", m).groups()[0])
+                for m in modifiers
+            ]
+            for weight in weights:
+                if weight <= 0:
+                    raise NotImplementedError(
+                        "Negative modifiers not yet implemented."
+                    )
+
+        # Include prompt without any modifiers with a weight of 1.0.
+        texts.insert(0, re.sub(r"({.*})", "", prompt))
+        weights.insert(0, 1)
+
+        # Encode.
+        text_input = self.tokenizer(
+            texts,
+            padding="max_length",
+            max_length=self.tokenizer.model_max_length,
+            truncation=True,
+            return_tensors="pt",
+        )
+        input_ids = text_input.input_ids.to(self.device)
+        raw_embeddings = self.text_encoder(input_ids)[0]
+
+        # Apply weights and return to correct shape.
+        weights = torch.tensor(weights)[:, None, None].to(self.device)
+        embeddings = (raw_embeddings * weights).sum(axis=0) / weights.sum()
+        embeddings = embeddings[None, ...]
+        return embeddings
+
     @torch.no_grad()
     def __call__(
         self,
@@ -224,32 +272,35 @@ class StableDiffusionInpaintPipeline(DiffusionPipeline):
 
         # check sizes
         if not mask.shape == init_latents.shape:
-            raise ValueError("The mask and init_image should be the same size!")
+            raise ValueError(
+                "The mask and init_image should be the same size!"
+            )
 
         # get the original timestep using init_timestep
         init_timestep = int(num_inference_steps * strength) + offset
         init_timestep = min(init_timestep, num_inference_steps)
         if isinstance(self.scheduler, LMSDiscreteScheduler):
             timesteps = torch.tensor(
-                [num_inference_steps - init_timestep] * batch_size, dtype=torch.long, device=self.device
+                [num_inference_steps - init_timestep] * batch_size,
+                dtype=torch.long,
+                device=self.device,
             )
         else:
             timesteps = self.scheduler.timesteps[-init_timestep]
-            timesteps = torch.tensor([timesteps] * batch_size, dtype=torch.long, device=self.device)
+            timesteps = torch.tensor(
+                [timesteps] * batch_size, dtype=torch.long, device=self.device
+            )
 
         # add noise to latents using the timesteps
-        noise = torch.randn(init_latents.shape, generator=generator, device=self.device)
-        init_latents = self.scheduler.add_noise(init_latents, noise, timesteps).to(self.device)
+        noise = torch.randn(
+            init_latents.shape, generator=generator, device=self.device
+        )
+        init_latents = self.scheduler.add_noise(
+            init_latents, noise, timesteps
+        ).to(self.device)
 
         # get prompt text embeddings
-        text_input = self.tokenizer(
-            prompt,
-            padding="max_length",
-            max_length=self.tokenizer.model_max_length,
-            truncation=True,
-            return_tensors="pt",
-        )
-        text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
+        text_embeddings = self.get_embeddings_with_modifiers(prompt)
 
         # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
         # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
