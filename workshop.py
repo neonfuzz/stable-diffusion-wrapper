@@ -35,9 +35,9 @@ from tqdm import tqdm
 
 from gobig import upscale, gobig
 from image import StableImage, StableGallery
+from pipeline import StablePipe
 from prompt import StablePrompt
 from settings import SEEDS, StableSettings
-from pipeline_stable_diffusion_inpaint import StableDiffusionInpaintPipeline
 
 
 def load_learned_embed_in_clip(
@@ -150,7 +150,7 @@ class StableWorkshop:
         version = str(version)
         if version not in [str(i) for i in range(1, 5)]:
             raise ValueError(f"`version` needs to be 1-4, not {version}")
-        self._pipe = StableDiffusionInpaintPipeline.from_pretrained(
+        self._pipe = StablePipe.from_pretrained(
             f"CompVis/stable-diffusion-v1-{version}",
             torch_dtype=torch.float16,
             revision="fp16",
@@ -183,16 +183,16 @@ class StableWorkshop:
         self,
         settings: StableSettings,
         prompt: StablePrompt,
-        init_image: Union[Image.Image, StableImage] = None,
+        init_image: StableImage = None,
         num: int = 1,
     ) -> Iterable[Image.Image]:
         set_seed(settings.seed)
         neg = prompt.neg
         prompt = [str(prompt)] * num
         if init_image is None:
-            init_image = self._init_image(settings)
             mask = Image.new("L", (settings.width, settings.height), 255)
-        elif isinstance(init_image, StableImage):
+            init_image = self._init_image(settings)
+        else:
             mask = init_image.mask
             init_image = init_image.image
         with autocast("cuda"):
@@ -271,7 +271,7 @@ class StableWorkshop:
                 settings=settings, prompt=prompt, init_image=init
             )[0]
             image = StableImage(
-                prompt=self.prompt,
+                prompt=prompt,
                 settings=settings,
                 image=image,
                 init=init,
@@ -334,6 +334,7 @@ class StableWorkshop:
             beta_end=self._pipe.scheduler.beta_end,
             beta_schedule=self._pipe.scheduler.beta_schedule,
         )
+        self._pipe.register_modules(scheduler=self._pipe.scheduler)
         self.settings.iters = iters
 
     def draft_off(self, iters: int = 50):
@@ -354,6 +355,7 @@ class StableWorkshop:
             beta_schedule=self._pipe.scheduler.beta_schedule,
             skip_prk_steps=True,
         )
+        self._pipe.register_modules(scheduler=self._pipe.scheduler)
         self.settings.iters = iters
 
     def show(self, **kwargs):
@@ -438,8 +440,9 @@ class StableWorkshop:
         settings_iter = [d.settings.copy(iters=iters) for d in drafts]
         prompt_iter = [d.prompt for d in drafts]
 
-        self.draft_off(iters=iters)
-        warnings.warn("Draft mode has been turned off.")
+        if self._draft:
+            self.draft_off(iters=iters)
+            warnings.warn("Draft mode has been turned off.")
 
         self._render_loop(
             inits=inits,
@@ -524,7 +527,7 @@ class StableWorkshop:
                 self.draft_off()
                 image = gobig(
                     init_image,
-                    prompt=str(self.prompt),
+                    prompt=self.prompt,
                     pipe=self._pipe,
                     face_enhance=face_enhance,
                     **kwargs,
