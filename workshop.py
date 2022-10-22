@@ -198,8 +198,12 @@ class StableWorkshop:
             mask = Image.new("L", (settings.width, settings.height), 255)
             init_image = self._init_image(settings)
         else:
-            mask = init_image.mask
-            init_image = init_image.image
+            mask = init_image.mask.resize(
+                (settings.width, settings.height), Image.Resampling.LANCZOS
+            )
+            init_image = init_image.image.resize(
+                (settings.width, settings.height), Image.Resampling.LANCZOS
+            )
         with autocast("cuda"):
             result = self._pipe(
                 prompt,
@@ -532,7 +536,7 @@ class StableWorkshop:
                 self.draft_off()
                 image = gobig(
                     init_image,
-                    prompt=self.prompt,
+                    prompt=str(self.prompt),
                     pipe=self._pipe,
                     face_enhance=face_enhance,
                     **kwargs,
