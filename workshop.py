@@ -121,7 +121,7 @@ class StableWorkshop:
         returns corresponding item in `generated`
     """
 
-    def __init__(self, version="3", **kwargs):
+    def __init__(self, version="5", **kwargs):
         self._init_model(version)
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)
@@ -148,10 +148,15 @@ class StableWorkshop:
 
     def _init_model(self, version, **kwargs):
         version = str(version)
-        if version not in [str(i) for i in range(1, 5)]:
-            raise ValueError(f"`version` needs to be 1-4, not {version}")
+        if version not in [str(i) for i in range(1, 6)]:
+            raise ValueError(f"`version` needs to be 1-5, not {version}")
+        model_name = (
+            f"CompVis/stable-diffusion-v1-{version}"
+            if 0 < int(version) <= 3
+            else f"runwayml/stable-diffusion-v1-{version}"
+        )
         self._pipe = StablePipe.from_pretrained(
-            f"CompVis/stable-diffusion-v1-{version}",
+            model_name,
             torch_dtype=torch.float16,
             revision="fp16",
             use_auth_token=True,
