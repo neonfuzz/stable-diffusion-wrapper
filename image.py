@@ -92,6 +92,20 @@ class StableGallery(list):
         kwargs["labels"] = kwargs.pop("labels", labels)
         show_image_grid(self, **kwargs)
 
+    def show_last(self, n: int, **kwargs):
+        """Show the last N generated images.
+
+        Args:
+            n (int): number of images to show
+
+        Additional kwargs are passed to `show_image_grid`.
+        """
+        # pylint: disable=invalid-name
+        images = self[-n:]
+        labels = range(len(self) - n, len(self))
+        kwargs["labels"] = kwargs.pop("labels", labels)
+        show_image_grid(images, **kwargs)
+
     def save(self):
         """Save all images in the gallery. See `StableImage.save`."""
         for image in self:
