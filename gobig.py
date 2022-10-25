@@ -31,7 +31,6 @@ SOFTWARE.
 
 import gc
 from typing import List, Tuple
-from tqdm import tqdm
 from warnings import warn
 
 # pylint: disable=import-error, no-name-in-module
@@ -42,6 +41,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from realesrgan import RealESRGANer
 from torch import autocast, cuda
+from tqdm import tqdm
 
 
 ESRGAN_MODELS = dict(
@@ -56,8 +56,8 @@ ESRGAN_MODELS = dict(
 )
 ESRGAN_MODELS["upsampler"] = RealESRGANer(
     scale=4,
-    model_path="/home/addie/opt/Real-ESRGAN/experiments/pretrained_models/"
-    "RealESRGAN_x4plus.pth",
+    model_path="https://github.com/xinntao/Real-ESRGAN/releases/download/"
+    "v0.1.0/RealESRGAN_x4plus.pth",
     model=ESRGAN_MODELS["rdb"],
     tile=512,
     tile_pad=128,
