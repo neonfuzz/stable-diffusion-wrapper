@@ -8,15 +8,6 @@ Functions:
     make_seeds - generate random seeds
 """
 
-# bug-fix and easy
-# TODO: implement seed in upscaling
-# TODO: when upscaling images, make sure the metadata is traceable
-
-# long-term
-# TODO: when loading images, set the hash to the loaded one?
-# TODO: average images in latent space
-# TODO: "working" image, which can be set or loaded from file
-
 # pylint: disable=no-member, no-name-in-module
 from copy import copy
 import gc
