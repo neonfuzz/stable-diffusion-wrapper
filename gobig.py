@@ -43,9 +43,12 @@ from realesrgan import RealESRGANer
 from torch import autocast, cuda
 from tqdm import tqdm
 
+from utils import LazyLoad
+
 
 ESRGAN_MODELS = dict(
-    rdb=RRDBNet(
+    rdb=LazyLoad(
+        RRDBNet,
         num_in_ch=3,
         num_out_ch=3,
         num_feat=64,
@@ -54,7 +57,8 @@ ESRGAN_MODELS = dict(
         scale=4,
     ),
 )
-ESRGAN_MODELS["upsampler"] = RealESRGANer(
+ESRGAN_MODELS["upsampler"] = LazyLoad(
+    RealESRGANer,
     scale=4,
     model_path="https://github.com/xinntao/Real-ESRGAN/releases/download/"
     "v0.1.0/RealESRGAN_x4plus.pth",
@@ -65,7 +69,8 @@ ESRGAN_MODELS["upsampler"] = RealESRGANer(
     half=False,
     gpu_id=0,
 )
-ESRGAN_MODELS["face_enhancer"] = GFPGANer(
+ESRGAN_MODELS["face_enhancer"] = LazyLoad(
+    GFPGANer,
     model_path="https://github.com/TencentARC/GFPGAN/releases/download/"
     "v1.3.0/GFPGANv1.3.pth",
     upscale=2,
@@ -93,6 +98,9 @@ def upscale(
     if isinstance(img, Image.Image):
         to_pil = True
         img = np.array(img)[..., ::-1]
+
+    for model in ESRGAN_MODELS.values():
+        model.load()
 
     if face_enhance:
         face_enhancer = ESRGAN_MODELS["face_enhancer"]
