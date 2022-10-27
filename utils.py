@@ -6,7 +6,7 @@ Classes:
 
 
 import gc
-from typing import Callable
+from typing import Callable, Iterable
 
 
 class LazyLoad:
@@ -23,15 +23,23 @@ class LazyLoad:
             with the model's
     """
 
-    def __init__(self, func: Callable, *args, **kwargs):
+    def __init__(
+        self,
+        func: Callable,
+        *args,
+        load_hooks: Iterable[Callable] = None,
+        **kwargs
+    ):
         """Initialize.
 
         Args:
             func (Callable): constructor function
+            load_hooks (Iterable of Callable): functions to run on `load`
 
         Additional args and kwargs are passed to `func` when loaded.
         """
         self.loader = func
+        self.load_hooks = load_hooks or []
         self.args = args
         self.kwargs = kwargs
         self._model = None
@@ -45,9 +53,12 @@ class LazyLoad:
                     continue
                 attribute = getattr(self._model, attribute_name)
                 setattr(self, attribute_name, attribute)
+            for func in self.load_hooks:
+                func(self)
             setattr(self, "__class__", getattr(self._model, "__class__"))
             setattr(self, "load", lambda: None)
             delattr(self, "loader")
+            delattr(self, "load_hooks")
             delattr(self, "args")
             delattr(self, "kwargs")
             delattr(self, "_model")
