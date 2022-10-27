@@ -8,13 +8,19 @@ Functions:
     make_seeds - generate random seeds
 """
 
-# pylint: disable=no-member, no-name-in-module
+# pylint: disable=no-member, no-name-in-module, not-callable
 from copy import copy
 import gc
 from typing import Iterable, Union
 import warnings
 
-from diffusers import LMSDiscreteScheduler, PNDMScheduler
+from diffusers import (
+    DiffusionPipeline,
+    LMSDiscreteScheduler,
+    PNDMScheduler,
+    logging,
+)
+from diffusers.pipelines.stable_diffusion import StableDiffusionImg2ImgPipeline
 from diffusers.training_utils import set_seed
 import numpy as np
 from PIL import Image
@@ -26,9 +32,12 @@ from tqdm import tqdm
 
 from gobig import upscale, gobig
 from image import StableImage, StableGallery
-from pipeline import StablePipe
 from prompt import StablePrompt
 from settings import SEEDS, StableSettings
+from utils import LazyLoad
+
+
+logging.set_verbosity(logging.ERROR)
 
 
 def load_learned_embed_in_clip(
@@ -90,6 +99,8 @@ class StableWorkshop:
         settings (StableSettings): the settings used for generating
         generated (list of StableImage): all images that have been generated
         drafted (list of StableImage): all drafted images
+        mode (str): one of "img2img" or "inpaint", depending on which model is
+            currently on the gpu
 
         Additionally, all attributes of `prompt` and `settings` are accessible
         as attributes within the StableWorkshop class.
@@ -112,21 +123,29 @@ class StableWorkshop:
         returns corresponding item in `generated`
     """
 
-    def __init__(self, version: Union[int, str]="5", **kwargs):
+    def __init__(
+        self,
+        version: Union[int, str] = "5",
+        inpaint_version="runwayml/stable-diffusion-inpainting",
+        **kwargs,
+    ):
         """Initialize.
 
         Args:
-            version (int or int-like str): model version to load
+            version (int or int-like str): model version to load; default=5
+            inpaint_version (str): inpaint model version to load;
+                default = "runwayml/stable-diffusion-inpainting"
 
         Additional kwargs are passed to both `StablePrompt` and
         `StableSettings` as they are instantiated.
         """
-        self._init_model(version)
+        self._init_model(version, inpaint_version)
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)
         self.generated = StableGallery()
         self.drafted = StableGallery()
         self._draft = False
+        self._mode = "img2img"
         for key in self.prompt.dict:
             fget = lambda self, k=key: self.prompt[k]
             fset = lambda self, value, k=key: setattr(self.prompt, k, value)
@@ -145,26 +164,44 @@ class StableWorkshop:
     def __setitem__(self, idx, new):
         self.generated[idx] = new
 
-    def _init_model(self, version, **kwargs):
-        version = str(version)
-        if version not in [str(i) for i in range(1, 6)]:
-            raise ValueError(f"`version` needs to be 1-5, not {version}")
-        model_name = (
-            f"CompVis/stable-diffusion-v1-{version}"
-            if 0 < int(version) <= 3
-            else f"runwayml/stable-diffusion-v1-{version}"
-        )
-        self._pipe = StablePipe.from_pretrained(
+    def _init_model(self, version, inpaint_version, **kwargs):
+        try:
+            model_name = (
+                f"CompVis/stable-diffusion-v1-{version}"
+                if 0 < int(version) <= 3
+                else f"runwayml/stable-diffusion-v1-{version}"
+            )
+        except ValueError:
+            model_name = version
+        self._pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
             model_name,
             torch_dtype=torch.float16,
             revision="fp16",
             use_auth_token=True,
+            safety_checker=None,
             **kwargs,
         )
         self._pipe.set_progress_bar_config(leave=False, position=1)
         self._pipe = self._pipe.to("cuda")
         self._pipe.enable_attention_slicing()
 
+        self._inpaint_pipe = LazyLoad(
+            DiffusionPipeline.from_pretrained,
+            inpaint_version,
+            load_hooks=[
+                lambda self: self.set_progress_bar_config(
+                    leave=False, position=1
+                ),
+                lambda self: self.enable_attention_slicing(),
+            ],
+            torch_dtype=torch.float16,
+            revision="fp16",
+            use_auth_token=True,
+            safety_checker=None,
+            **kwargs,
+        )
+
+    @torch.no_grad()
     def _init_image(self, settings: StableSettings) -> Image.Image:
         latents = torch.randn(
             (
@@ -178,8 +215,7 @@ class StableWorkshop:
         )
         latents = 1 / 0.18215 * latents
         with autocast("cuda"):
-            with torch.no_grad():
-                init_tensor = self._pipe.vae.decode(latents)
+            init_tensor = self._pipe.vae.decode(latents)
         init_tensor = (init_tensor["sample"] / 2 + 0.5).clamp(0, 1)
         return transforms.ToPILImage()(init_tensor[0])
 
@@ -191,29 +227,45 @@ class StableWorkshop:
         init_image: StableImage = None,
         num: int = 1,
     ) -> Iterable[Image.Image]:
-        set_seed(settings.seed)
-        neg = prompt.neg
-        prompt = [str(prompt)] * num
-        if init_image is None:
-            mask = Image.new("L", (settings.width, settings.height), 255)
-            init_image = self._init_image(settings)
-        else:
-            mask = init_image.mask.resize(
-                (settings.width, settings.height), Image.Resampling.LANCZOS
-            )
-            init_image = init_image.image.resize(
-                (settings.width, settings.height), Image.Resampling.LANCZOS
-            )
-        with autocast("cuda"):
-            result = self._pipe(
-                prompt,
-                init_image=init_image,
-                mask_image=mask,
-                neg_input=neg,
+        def inpaint():
+            self.mode = "inpaint"
+            result = self._inpaint_pipe(
+                prompt=str(prompt),
+                image=init_image,
+                mask_image=mask.image,
+                height=settings.height,
+                width=settings.width,
+                negative_prompt=prompt.neg,
+                num_images_per_prompt=num,
                 strength=settings.strength,
                 guidance_scale=settings.cfg,
                 num_inference_steps=settings.iters,
             )
+            return result
+
+        def img2img():
+            self.mode = "img2img"
+            return self._pipe(
+                prompt=str(prompt),
+                init_image=init_image,
+                negative_prompt=prompt.neg,
+                num_images_per_prompt=num,
+                strength=settings.strength,
+                guidance_scale=settings.cfg,
+                num_inference_steps=settings.iters,
+            )
+
+        set_seed(settings.seed)
+        if init_image is None:
+            mask = None
+            init_image = self._init_image(settings)
+        else:
+            mask = init_image.mask
+            init_image = init_image.image.resize(
+                (settings.width, settings.height), Image.Resampling.LANCZOS
+            )
+        with autocast("cuda"):
+            result = inpaint() if mask else img2img()
         gc.collect()
         cuda.empty_cache()
         return result["images"]
@@ -530,10 +582,10 @@ class StableWorkshop:
         if isinstance(idxs, int):
             idxs = [idxs]
 
+        self.mode = "img2img"
         for idx in idxs:
             init_image = self.generated[idx].image
             if render_more:
-                self.draft_off()
                 image = gobig(
                     init_image,
                     prompt=str(self.prompt),
@@ -563,6 +615,34 @@ class StableWorkshop:
     def save(self):
         """Save all `generated` images. See `StableImage.save`."""
         self.generated.save()
+
+    @property
+    def mode(self):
+        """Get/set the current mode and move the proper model to the GPU."""
+        return self._mode
+
+    @mode.setter
+    def mode(self, new_mode: str):
+        if self._mode == new_mode:
+            return
+
+        self._mode = new_mode
+
+        if new_mode == "img2img":
+            self._inpaint_pipe.to("cpu")
+            self._pipe.to("cuda")
+        elif new_mode == "inpaint":
+            self._pipe.to("cpu")
+            self._inpaint_pipe.load()
+            self._inpaint_pipe.to("cuda")
+        else:
+            raise ValueError(
+                '`mode` should be one of "img2img" or "inpaint", '
+                f'but got "{new_mode}"'
+            )
+
+        gc.collect()
+        cuda.empty_cache()
 
 
 if __name__ == "__main__":

@@ -185,8 +185,8 @@ class StableImage:
                 width=66,
             )
 
-        if self._mask:
-            self._mask.save()
+        if self.mask:
+            self.mask.save()
 
         if self.init:
             self.init.save()
@@ -206,16 +206,10 @@ class StableImage:
         """Reset the mask to default."""
         self._mask = None
 
-    @property
-    def mask(self):
-        """Return mask."""
-        if self._mask is not None:
-            return self._mask.image
-        return Image.new("L", (self.settings.width, self.settings.height), 255)
-
     prompt = property(fget=lambda self: self._prompt)
     settings = property(fget=lambda self: self._settings)
     image = property(fget=lambda self: self._image)
+    mask = property(fget=lambda self: self._mask)
     init = property(fget=lambda self: self._init)
     hash = property(
         fget=lambda self: f"{hash(self.image.tobytes()):x}".strip("-")
