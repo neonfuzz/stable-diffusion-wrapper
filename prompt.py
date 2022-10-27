@@ -185,6 +185,7 @@ class StablePrompt:
         """Set attributes for manga/anime."""
         self.painting()
         self.artists = ["Studio Ghibli", "Hayao Mikazaki"]
+        self.trending = "pixiv"
         self.movement = ""
         self.flavors = ["anime aesthetic"]
 
