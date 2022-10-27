@@ -555,3 +555,6 @@ class StableWorkshop:
         """Save all `generated` images. See `StableImage.save`."""
         self.generated.save()
 
+
+if __name__ == "__main__":
+    ws = StableWorkshop()
