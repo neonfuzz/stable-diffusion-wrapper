@@ -112,7 +112,15 @@ class StableWorkshop:
         returns corresponding item in `generated`
     """
 
-    def __init__(self, version="5", **kwargs):
+    def __init__(self, version: Union[int, str]="5", **kwargs):
+        """Initialize.
+
+        Args:
+            version (int or int-like str): model version to load
+
+        Additional kwargs are passed to both `StablePrompt` and
+        `StableSettings` as they are instantiated.
+        """
         self._init_model(version)
         self.prompt = StablePrompt(**kwargs)
         self.settings = StableSettings(**kwargs)

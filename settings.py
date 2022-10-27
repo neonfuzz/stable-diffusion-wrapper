@@ -1,5 +1,4 @@
-"""
-Handle settings for interactive use of Stable Diffusion (SD).
+"""Handle settings for interactive use of Stable Diffusion (SD).
 
 Classes:
     StableSettings - contain settings for SD
@@ -56,6 +55,16 @@ class StableSettings:
     """
 
     def __init__(self, **kwargs):
+        """Initialize.
+
+        Args:
+            height (int): image height in pixels, default=512
+            width (int): image width in pixels, default=512
+            seed (int): random seed for generating images, default=1337
+            iters (int): number of diffusion steps for generation, default=50
+            cfg (float): classifier free guidance, default=6.0
+            strength (float): maintain original image, default=1.0
+        """
         self.height = kwargs.pop("height", 512)
         self.width = kwargs.pop("width", 512)
         self.seed = kwargs.pop("seed", SEEDS[0])

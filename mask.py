@@ -1,5 +1,4 @@
-"""
-Tools to draw custom masks for StableDiffusion infilling.
+"""Tools to draw custom masks for StableDiffusion infilling.
 
 Classes:
     StableMasker - interactively draw an infill mask
@@ -35,16 +34,14 @@ class StableMasker:
         change_rad: update the `thickness`
         draw: draw on image / update mask
         reset: start over
-
-    When Called:
-        Displays `img` to screen in an editable window.
-        Left click adds mask; right click erases mask.
-        Scroll up/down changes brush size.
-        "Escape" or "Return" exit and return the mask.
-        "R" erases all mask and starts over.
     """
 
     def __init__(self, thickness: int = 30):
+        """Initialize.
+
+        Args:
+            thickness (int): starting cursor thickness
+        """
         self.width = 512
         self.height = 512
         self.thickness = thickness
@@ -54,6 +51,18 @@ class StableMasker:
         self._mask = None
 
     def __call__(self, img: Image.Image):
+        """Create a mask on an image.
+
+        Args:
+            img (Image.Image): image to mask.
+
+        When Called:
+            Displays `img` to screen in an editable window.
+            Left click adds mask; right click erases mask.
+            Scroll up/down changes brush size.
+            "Escape" or "Return" exit and return the mask.
+            "R" erases all mask and starts over.
+        """
         self.width, self.height = img.size
         pygame.init()
         self._screen = pygame.display.set_mode((self.width, self.height))

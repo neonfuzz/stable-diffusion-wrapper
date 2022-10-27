@@ -1,5 +1,4 @@
-"""
-Tools for intelligently uscaling images.
+"""Tools for intelligently uscaling images.
 
 Functions:
     upscale - apply RealESRGAN
@@ -93,7 +92,6 @@ def upscale(
     Returns:
         Image.Image: upscaled image
     """
-
     to_pil = False
     if isinstance(img, Image.Image):
         to_pil = True

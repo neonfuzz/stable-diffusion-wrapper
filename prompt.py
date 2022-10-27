@@ -1,5 +1,4 @@
-"""
-Prompt-crafting tools.
+"""Prompt-crafting tools.
 
 Classes:
     StablePrompt - contain prompt for SD
@@ -69,6 +68,26 @@ class StablePrompt:
         medium="a detailed matte painting",
         **kwargs,
     ):
+        """Initialize.
+
+        Args:
+            subject (str): composition subject, default="a fantasy landscape"
+            medium (str): describe type of image,
+                default="a detailed matte painting"
+            details (list of str): additional details to render in the image,
+                default=["blue sky", "grass", "river"]
+            artists (list of str): artist names to guide style,
+                default=["Tyler Edlin", "Michael Whelan"]
+            trend_type (str with "{}"): type of trend, default "trending on {}"
+            trending (str): where it's trending, default "artstation"
+            movement (str): overall style, default "fantasy art"
+            flavors (list of str): style guides,
+                default=[
+                    "matte painting",
+                    "matte drawing",
+                    "reimagined by industrial light and magic",
+                    ]
+        """
         self.subject = subject
         self.details = kwargs.pop("details", ["blue sky", "grass", "river"])
         self.medium = medium
@@ -146,6 +165,7 @@ class StablePrompt:
         self.subject = _select_result(choices)
 
     def zero(self):
+        """Set all attributes to be empty."""
         self.subject = ""
         self.details = []
         self.medium = ""

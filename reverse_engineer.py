@@ -67,6 +67,12 @@ class ModifierEmbedding:
     """
 
     def __init__(self, modifiers: List[str], desc: str):
+        """Initialize.
+
+        Args:
+            modifiers (List[str]): modifiers texts
+            desc (str): description of modifier type
+        """
         self._desc = desc
         self._modifiers = modifiers
         self._embeds = None

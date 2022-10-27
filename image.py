@@ -1,5 +1,4 @@
-"""
-Handle image storage for interactive use of Stable Diffusion (SD).
+"""Handle image storage for interactive use of Stable Diffusion (SD).
 
 Classes:
     StableImage - contain SD image and its generation information
@@ -10,6 +9,8 @@ Functions:
     show_thumbs = display images in a grid with a consistent size
 """
 
+
+from __future__ import annotations
 
 from copy import deepcopy as copy
 from math import ceil, sqrt
@@ -114,8 +115,16 @@ class StableImage:
         prompt: StablePrompt,
         settings: StableSettings,
         image: Image,
-        init=None,
+        init: StableImage = None,
     ):
+        """Initialize.
+
+        Args:
+            prompt (StablePrompt): prompt used to generate the image
+            settings (StableSettings): settings used to generate the image
+            image (Image): raw image data
+            init (StableImage): image used to initialize generation, if img2img
+        """
         self._prompt = copy(prompt)
         self._settings = copy(settings) or StableSettings()
         self._image = copy(image)

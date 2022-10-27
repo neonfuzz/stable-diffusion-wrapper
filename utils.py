@@ -1,5 +1,4 @@
-"""
-Provide utilities for the Stable Diffusion Wrapper
+"""Provide utilities for the Stable Diffusion Wrapper.
 
 Classes:
     LazyLoad: lazy load torch models
@@ -11,8 +10,7 @@ from typing import Callable
 
 
 class LazyLoad:
-    """
-    Lazy load torch models.
+    """Lazy load torch models.
 
     Instance attributes:
         loader (Callable): function which loads the model
@@ -24,7 +22,15 @@ class LazyLoad:
         load: load the model, and replace this class' attributes
             with the model's
     """
+
     def __init__(self, func: Callable, *args, **kwargs):
+        """Initialize.
+
+        Args:
+            func (Callable): constructor function
+
+        Additional args and kwargs are passed to `func` when loaded.
+        """
         self.loader = func
         self.args = args
         self.kwargs = kwargs

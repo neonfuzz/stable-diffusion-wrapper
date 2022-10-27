@@ -1,5 +1,4 @@
-"""
-Inpainting pipeline tools.
+"""Inpainting pipeline tools.
 
 Adapted from the HuggingFace Diffusers 0.3.0 implementation of
 `pipeline_stable_diffusion_inpaint.py`.
@@ -57,8 +56,7 @@ def preprocess_mask(mask: PIL.Image.Image) -> torch.tensor:
 
 
 class StablePipe(StableDiffusionInpaintPipeline):
-    """
-    Run the Stable Diffusion Pipeline from start to finish.
+    """Run the Stable Diffusion Pipeline from start to finish.
 
     Subclassed from StableDiffusion's inpainting pipeline (via diffusers).
 
@@ -159,8 +157,7 @@ class StablePipe(StableDiffusionInpaintPipeline):
     ):
         # pylint: disable=line-too-long
         # URLs in the markdown make it untenable to have shorter lines.
-        r"""
-        Function invoked when calling the pipeline for generation.
+        r"""Function invoked when calling the pipeline for generation.
 
         Args:
             prompt (`str` or `List[str]`):
