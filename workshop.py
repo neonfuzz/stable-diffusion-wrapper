@@ -183,6 +183,7 @@ class StableWorkshop:
         init_tensor = (init_tensor["sample"] / 2 + 0.5).clamp(0, 1)
         return transforms.ToPILImage()(init_tensor[0])
 
+    @torch.no_grad()
     def _render(
         self,
         settings: StableSettings,
