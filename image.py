@@ -7,13 +7,14 @@ Classes:
 
 Functions:
     show_image_grid = display images in a grid
+    show_thumbs = display images in a grid with a consistent size
 """
 
 
 from copy import deepcopy as copy
 from math import ceil, sqrt
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Union
 import yaml
 
 from PIL import Image, ImageDraw, ImageFont
@@ -32,29 +33,6 @@ def _add_label(img, label):
     draw.text((9, 9), str(label), fill=(0, 0, 0), font=_FONT)
     draw.text((10, 10), str(label), fill=(255, 255, 255), font=_FONT)
     return img
-
-
-def show_image_grid(
-    imgs: Iterable, rows: int = None, cols: int = None, labels: Iterable = None
-):
-    """Display multiple images at once, in a grid format."""
-    if isinstance(imgs[0], StableImage):
-        imgs = [i.image for i in imgs]
-    if labels:
-        imgs = [_add_label(im, lab) for im, lab in zip(imgs, labels)]
-    if cols:
-        rows = rows or int(ceil(len(imgs) / cols))
-    else:
-        rows = rows or int(sqrt(len(imgs)))
-        cols = int(ceil(len(imgs) / rows))
-    width = max([i.width for i in imgs])
-    height = max([i.height for i in imgs])
-    grid = Image.new("RGB", size=(cols * width, rows * height))
-
-    for i, img in enumerate(imgs):
-        grid.paste(img, box=(i % cols * width, i // cols * height))
-
-    grid.show()
 
 
 class StableGallery(list):
@@ -233,3 +211,41 @@ class StableImage:
     hash = property(
         fget=lambda self: f"{hash(self.image.tobytes()):x}".strip("-")
     )
+
+
+def show_image_grid(
+    imgs: Iterable[Union[Image.Image, StableImage]],
+    rows: int = None,
+    cols: int = None,
+    labels: Iterable = None,
+):
+    """Display multiple images at once, in a grid format."""
+    if isinstance(imgs[0], StableImage):
+        imgs = [i.image for i in imgs]
+    if labels:
+        imgs = [_add_label(im, lab) for im, lab in zip(imgs, labels)]
+    if cols:
+        rows = rows or int(ceil(len(imgs) / cols))
+    else:
+        rows = rows or int(sqrt(len(imgs)))
+        cols = int(ceil(len(imgs) / rows))
+    width = max([i.width for i in imgs])
+    height = max([i.height for i in imgs])
+    grid = Image.new("RGB", size=(cols * width, rows * height))
+
+    for i, img in enumerate(imgs):
+        grid.paste(img, box=(i % cols * width, i // cols * height))
+
+    grid.show()
+
+
+def show_thumbs(
+    imgs: Iterable[Union[Image.Image, StableImage]], size=512, **kwargs
+):
+    """Show thumbnails at specified size."""
+    if isinstance(imgs[0], StableImage):
+        imgs = [i.image for i in imgs]
+    thumbs = [copy(i) for i in imgs]
+    for thumb in thumbs:
+        thumb.thumbnail((size, size), resample=Image.Resampling.LANCZOS)
+    show_image_grid(thumbs, **kwargs)
