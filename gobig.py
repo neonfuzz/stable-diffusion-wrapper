@@ -103,6 +103,7 @@ def upscale(
     if face_enhance:
         face_enhancer = ESRGAN_MODELS["face_enhancer"]
         face_enhancer.upscale = scale
+        face_enhancer.face_helper.upscale_factor = scale
         face_enhancer.bg_upsampler.model.to("cuda:0")
         face_enhancer.gfpgan.to("cuda:0")
         _, _, output = face_enhancer.enhance(
