@@ -214,6 +214,7 @@ class StableWorkshop:
             dtype=torch.float16,
         )
         latents = 1 / 0.18215 * latents
+        self.mode = "img2img"
         with autocast("cuda"):
             init_tensor = self._pipe.vae.decode(latents)
         init_tensor = (init_tensor["sample"] / 2 + 0.5).clamp(0, 1)
@@ -229,6 +230,11 @@ class StableWorkshop:
     ) -> Iterable[Image.Image]:
         def inpaint():
             self.mode = "inpaint"
+            if settings.strength < 1:
+                warnings.warn(
+                    f"Strength of {settings.strength} will not be used "
+                    "in inpaint mode."
+                )
             result = self._inpaint_pipe(
                 prompt=str(prompt),
                 image=init_image,
@@ -237,7 +243,6 @@ class StableWorkshop:
                 width=settings.width,
                 negative_prompt=prompt.neg,
                 num_images_per_prompt=num,
-                strength=settings.strength,
                 guidance_scale=settings.cfg,
                 num_inference_steps=settings.iters,
             )
