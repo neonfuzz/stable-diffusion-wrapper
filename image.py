@@ -19,6 +19,7 @@ from typing import Iterable, Union
 import yaml
 
 from PIL import Image, ImageDraw, ImageFont
+import numpy as np
 
 from mask import StableMasker
 from prompt import StablePrompt
@@ -58,6 +59,17 @@ class StableGallery(list):
 
     def __add__(self, other_obj):
         return StableGallery(super().__add__(other_obj))
+
+    def mean(self) -> Image.Image:
+        """Return the average image from the StableGallery.
+
+        Returns:
+            Image.Image: mean image
+        """
+        array = np.array([np.array(i.image) for i in self])
+        im_array = array.mean(axis=0).astype("uint8")
+        image = Image.fromarray(im_array)
+        return StableImage(prompt="mean", settings={}, image=image, init=self)
 
     def show(self, **kwargs):
         """Show the gallery.
